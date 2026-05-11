@@ -1,0 +1,3173 @@
+openapi: 3.0.3
+info:
+  title: Coolify API - Postman Starter Collection
+  version: 1.0.0
+  description: OpenAPI preparado para importar en Postman. Basado en el índice público de Coolify API Reference y con esquemas flexibles para
+    facilitar pruebas contra distintas versiones de Coolify. Configura la variable de servidor baseUrl, normalmente https://tu-coolify.example.com/api/v1,
+    y el token Bearer en Postman.
+servers:
+- url: '{baseUrl}'
+  description: 'Coolify API base URL. Ejemplo: https://coolify.example.com/api/v1'
+  variables:
+    baseUrl:
+      default: https://coolify.example.com/api/v1
+      description: URL base de la API de Coolify.
+tags:
+- name: Default
+- name: Applications
+- name: Cloud Tokens
+- name: Databases
+- name: Deployments
+- name: GitHub Apps
+- name: Hetzner
+- name: Projects
+- name: Resources
+- name: Private Keys
+- name: Servers
+- name: Services
+- name: Teams
+paths:
+  /version:
+    get:
+      tags:
+      - Default
+      summary: Version
+      description: Obtiene la versión de Coolify.
+      operationId: get_version
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Devuelve la versión de la aplicación.
+          content:
+            text/html:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /enable-api:
+    get:
+      tags:
+      - Default
+      summary: Enable API
+      description: Activa la API de Coolify.
+      operationId: enable_api
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /disable-api:
+    get:
+      tags:
+      - Default
+      summary: Disable API
+      description: Desactiva la API de Coolify.
+      operationId: disable_api
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /health:
+    get:
+      tags:
+      - Default
+      summary: Healthcheck
+      description: Comprueba el estado de salud/disponibilidad de la API.
+      operationId: healthcheck
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: API disponible.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /applications:
+    get:
+      tags:
+      - Applications
+      summary: List applications
+      description: Lista todas las aplicaciones visibles para el token.
+      operationId: list_applications
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: tag
+        in: query
+        required: false
+        description: Filtra aplicaciones por etiqueta.
+        schema:
+          type: string
+  /applications/public:
+    post:
+      tags:
+      - Applications
+      summary: Create public application
+      description: Crea una aplicación basada en un repositorio Git público.
+      operationId: create_public_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Aplicación creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              git_repository: https://github.com/user/repo
+              git_branch: main
+              build_pack: nixpacks
+              ports_exposes: '3000'
+              name: my-app
+              domains: https://my-app.example.com
+              instant_deploy: true
+  /applications/private-github-app:
+    post:
+      tags:
+      - Applications
+      summary: Create private application with GitHub App
+      description: Crea una aplicación privada usando GitHub App.
+      operationId: create_private_github_app_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/private-deploy-key:
+    post:
+      tags:
+      - Applications
+      summary: Create private application with Deploy Key
+      description: Crea una aplicación privada usando Deploy Key.
+      operationId: create_private_deploy_key_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/dockerfile:
+    post:
+      tags:
+      - Applications
+      summary: Create Dockerfile application without git
+      description: Crea una aplicación desde Dockerfile sin Git.
+      operationId: create_dockerfile_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/dockerimage:
+    post:
+      tags:
+      - Applications
+      summary: Create Docker Image application without git
+      description: Crea una aplicación desde una imagen Docker sin Git.
+      operationId: create_dockerimage_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/dockercompose:
+    post:
+      tags:
+      - Applications
+      summary: Create Docker Compose application
+      description: Crea una aplicación Docker Compose.
+      operationId: create_dockercompose_application
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/{uuid}:
+    get:
+      tags:
+      - Applications
+      summary: Get application
+      description: Obtiene una aplicación por UUID.
+      operationId: get_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - &id001
+        name: uuid
+        in: path
+        required: true
+        description: UUID del recurso.
+        schema:
+          type: string
+    delete:
+      tags:
+      - Applications
+      summary: Delete application
+      description: Elimina una aplicación por UUID.
+      operationId: delete_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Applications
+      summary: Update application
+      description: Actualiza una aplicación por UUID.
+      operationId: update_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/{uuid}/logs:
+    get:
+      tags:
+      - Applications
+      summary: Get application logs
+      description: Obtiene logs de la aplicación.
+      operationId: get_application_logs_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /applications/{uuid}/envs:
+    get:
+      tags:
+      - Applications
+      summary: List application envs
+      description: Lista variables de entorno de la aplicación.
+      operationId: list_envs_by_application_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    post:
+      tags:
+      - Applications
+      summary: Create application env
+      description: Crea una variable de entorno en la aplicación.
+      operationId: create_env_by_application_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              key: NODE_ENV
+              value: production
+              is_preview: false
+    patch:
+      tags:
+      - Applications
+      summary: Update application env
+      description: Actualiza una variable de entorno de la aplicación por clave.
+      operationId: update_env_by_application_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              key: NODE_ENV
+              value: production
+              is_preview: false
+              is_literal: true
+  /applications/{uuid}/envs/bulk:
+    patch:
+      tags:
+      - Applications
+      summary: Update application envs bulk
+      description: Actualiza variables de entorno de forma masiva.
+      operationId: update_envs_by_application_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /applications/{uuid}/envs/{env_uuid}:
+    delete:
+      tags:
+      - Applications
+      summary: Delete application env
+      description: Elimina una variable de entorno de la aplicación.
+      operationId: delete_env_by_application_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      - name: env_uuid
+        in: path
+        required: true
+        description: UUID de la variable de entorno.
+        schema:
+          type: string
+  /applications/{uuid}/start:
+    get:
+      tags:
+      - Applications
+      summary: Start application
+      description: Arranca una aplicación. Aunque sea GET, tiene efecto lateral.
+      operationId: start_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /applications/{uuid}/stop:
+    get:
+      tags:
+      - Applications
+      summary: Stop application
+      description: Para una aplicación. Aunque sea GET, tiene efecto lateral.
+      operationId: stop_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /applications/{uuid}/restart:
+    get:
+      tags:
+      - Applications
+      summary: Restart application
+      description: Reinicia una aplicación. Aunque sea GET, tiene efecto lateral.
+      operationId: restart_application_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /cloud-tokens:
+    get:
+      tags:
+      - Cloud Tokens
+      summary: List cloud provider tokens
+      description: Lista tokens de proveedores cloud.
+      operationId: list_cloud_tokens
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Cloud Tokens
+      summary: Create cloud provider token
+      description: Crea un token de proveedor cloud.
+      operationId: create_cloud_token
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /cloud-tokens/{uuid}:
+    get:
+      tags:
+      - Cloud Tokens
+      summary: Get cloud provider token
+      description: Obtiene un token cloud por UUID.
+      operationId: get_cloud_token_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Cloud Tokens
+      summary: Delete cloud provider token
+      description: Elimina un token cloud por UUID.
+      operationId: delete_cloud_token_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Cloud Tokens
+      summary: Update cloud provider token
+      description: Actualiza un token cloud por UUID.
+      operationId: update_cloud_token_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /cloud-tokens/{uuid}/validate:
+    post:
+      tags:
+      - Cloud Tokens
+      summary: Validate cloud provider token
+      description: Valida un token cloud por UUID.
+      operationId: validate_cloud_token_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /databases:
+    get:
+      tags:
+      - Databases
+      summary: List databases
+      description: Lista bases de datos.
+      operationId: list_databases
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /databases/{uuid}/backups:
+    get:
+      tags:
+      - Databases
+      summary: Get database backups
+      description: Obtiene configuraciones de backup de una base de datos.
+      operationId: get_database_backups_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    post:
+      tags:
+      - Databases
+      summary: Create database backup
+      description: Crea configuración de backup para una base de datos.
+      operationId: create_database_backup
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /databases/{uuid}:
+    get:
+      tags:
+      - Databases
+      summary: Get database
+      description: Obtiene una base de datos por UUID.
+      operationId: get_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Databases
+      summary: Delete database
+      description: Elimina una base de datos por UUID.
+      operationId: delete_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Databases
+      summary: Update database
+      description: Actualiza una base de datos por UUID.
+      operationId: update_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /databases/backups/{uuid}:
+    delete:
+      tags:
+      - Databases
+      summary: Delete backup configuration
+      description: Elimina una configuración de backup.
+      operationId: delete_backup_configuration_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Databases
+      summary: Update database backup
+      description: Actualiza una configuración de backup.
+      operationId: update_database_backup
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /databases/postgresql:
+    post:
+      tags:
+      - Databases
+      summary: Create database PostgreSQL
+      description: Crea una base de datos PostgreSQL.
+      operationId: create_database_postgresql
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: postgresql-production
+  /databases/clickhouse:
+    post:
+      tags:
+      - Databases
+      summary: Create database ClickHouse
+      description: Crea una base de datos ClickHouse.
+      operationId: create_database_clickhouse
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: clickhouse-production
+  /databases/dragonfly:
+    post:
+      tags:
+      - Databases
+      summary: Create database DragonFly
+      description: Crea una base de datos DragonFly.
+      operationId: create_database_dragonfly
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: dragonfly-production
+  /databases/redis:
+    post:
+      tags:
+      - Databases
+      summary: Create database Redis
+      description: Crea una base de datos Redis.
+      operationId: create_database_redis
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: redis-production
+  /databases/keydb:
+    post:
+      tags:
+      - Databases
+      summary: Create database KeyDB
+      description: Crea una base de datos KeyDB.
+      operationId: create_database_keydb
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: keydb-production
+  /databases/mariadb:
+    post:
+      tags:
+      - Databases
+      summary: Create database MariaDB
+      description: Crea una base de datos MariaDB.
+      operationId: create_database_mariadb
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: mariadb-production
+  /databases/mysql:
+    post:
+      tags:
+      - Databases
+      summary: Create database MySQL
+      description: Crea una base de datos MySQL.
+      operationId: create_database_mysql
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: mysql-production
+  /databases/mongodb:
+    post:
+      tags:
+      - Databases
+      summary: Create database MongoDB
+      description: Crea una base de datos MongoDB.
+      operationId: create_database_mongodb
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              project_uuid: PROJECT_UUID
+              server_uuid: SERVER_UUID
+              environment_name: production
+              name: mongodb-production
+  /databases/backup-executions/{uuid}:
+    delete:
+      tags:
+      - Databases
+      summary: Delete backup execution
+      description: Elimina una ejecución de backup.
+      operationId: delete_backup_execution_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /databases/backup-executions:
+    get:
+      tags:
+      - Databases
+      summary: List backup executions
+      description: Lista ejecuciones de backup.
+      operationId: list_backup_executions
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /databases/{uuid}/start:
+    get:
+      tags:
+      - Databases
+      summary: Start database
+      description: Arranca una base de datos.
+      operationId: start_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /databases/{uuid}/stop:
+    get:
+      tags:
+      - Databases
+      summary: Stop database
+      description: Para una base de datos.
+      operationId: stop_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /databases/{uuid}/restart:
+    get:
+      tags:
+      - Databases
+      summary: Restart database
+      description: Reinicia una base de datos.
+      operationId: restart_database_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /deployments:
+    get:
+      tags:
+      - Deployments
+      summary: List deployments
+      description: Lista despliegues.
+      operationId: list_deployments
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /deployments/{uuid}:
+    get:
+      tags:
+      - Deployments
+      summary: Get deployment
+      description: Obtiene un despliegue por UUID.
+      operationId: get_deployment_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /deployments/{uuid}/cancel:
+    post:
+      tags:
+      - Deployments
+      summary: Cancel deployment
+      description: Cancela un despliegue por UUID.
+      operationId: cancel_deployment_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /deploy:
+    get:
+      tags:
+      - Deployments
+      summary: Deploy by tag or uuid
+      description: Despliega por etiqueta o UUID.
+      operationId: deploy_by_tag_or_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: tag
+        in: query
+        required: false
+        description: Nombre(s) de etiqueta. También acepta lista separada por comas.
+        schema:
+          type: string
+      - name: uuid
+        in: query
+        required: false
+        description: UUID(s) de recurso. También acepta lista separada por comas.
+        schema:
+          type: string
+      - name: force
+        in: query
+        required: false
+        description: Fuerza rebuild sin caché.
+        schema:
+          type: boolean
+      - name: pr
+        in: query
+        required: false
+        description: ID de Pull Request para preview deploy.
+        schema:
+          type: integer
+      - name: pull_request_id
+        in: query
+        required: false
+        description: Alias de pr.
+        schema:
+          type: integer
+      - name: docker_tag
+        in: query
+        required: false
+        description: Docker image tag para preview deployments.
+        schema:
+          type: string
+    post:
+      tags:
+      - Deployments
+      summary: Deploy by tag or uuid using body
+      description: La documentación indica que también se acepta POST con uuid y tag en JSON.
+      operationId: deploy_by_tag_or_uuid_post
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              uuid: RESOURCE_UUID
+              force: false
+  /applications/{uuid}/deployments:
+    get:
+      tags:
+      - Deployments
+      summary: List application deployments
+      description: Lista despliegues de una aplicación.
+      operationId: list_deployments_by_app_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /github-apps:
+    get:
+      tags:
+      - GitHub Apps
+      summary: List GitHub Apps
+      description: Lista GitHub Apps.
+      operationId: list_github_apps
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - GitHub Apps
+      summary: Create GitHub App
+      description: Crea una GitHub App.
+      operationId: create_github_app
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /github-apps/{uuid}/repositories:
+    get:
+      tags:
+      - GitHub Apps
+      summary: Load repositories for GitHub App
+      description: Carga repositorios disponibles para una GitHub App.
+      operationId: load_repositories
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /github-apps/{uuid}/repositories/{repository}/branches:
+    get:
+      tags:
+      - GitHub Apps
+      summary: Load branches for GitHub repository
+      description: Carga ramas de un repositorio GitHub.
+      operationId: load_branches
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      - name: repository
+        in: path
+        required: true
+        description: Repositorio.
+        schema:
+          type: string
+  /github-apps/{uuid}:
+    delete:
+      tags:
+      - GitHub Apps
+      summary: Delete GitHub App
+      description: Elimina una GitHub App.
+      operationId: delete_github_app
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - GitHub Apps
+      summary: Update GitHub App
+      description: Actualiza una GitHub App.
+      operationId: update_github_app
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /hetzner/locations:
+    get:
+      tags:
+      - Hetzner
+      summary: Get Hetzner locations
+      description: Obtiene localizaciones de Hetzner.
+      operationId: get_hetzner_locations
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /hetzner/server-types:
+    get:
+      tags:
+      - Hetzner
+      summary: Get Hetzner server types
+      description: Obtiene tipos de servidor de Hetzner.
+      operationId: get_hetzner_server_types
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /hetzner/images:
+    get:
+      tags:
+      - Hetzner
+      summary: Get Hetzner images
+      description: Obtiene imágenes de Hetzner.
+      operationId: get_hetzner_images
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /hetzner/ssh-keys:
+    get:
+      tags:
+      - Hetzner
+      summary: Get Hetzner SSH keys
+      description: Obtiene claves SSH de Hetzner.
+      operationId: get_hetzner_ssh_keys
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /hetzner/servers:
+    post:
+      tags:
+      - Hetzner
+      summary: Create Hetzner server
+      description: Crea un servidor en Hetzner.
+      operationId: create_hetzner_server
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /projects:
+    get:
+      tags:
+      - Projects
+      summary: List projects
+      description: Lista proyectos.
+      operationId: list_projects
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Projects
+      summary: Create project
+      description: Crea un proyecto.
+      operationId: create_project
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              name: My project
+              description: Project description
+  /projects/{uuid}:
+    get:
+      tags:
+      - Projects
+      summary: Get project
+      description: Obtiene un proyecto por UUID.
+      operationId: get_project_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Projects
+      summary: Delete project
+      description: Elimina un proyecto por UUID.
+      operationId: delete_project_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Projects
+      summary: Update project
+      description: Actualiza un proyecto por UUID.
+      operationId: update_project_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              name: New name
+              description: New description
+  /projects/{uuid}/{environment_name_or_uuid}:
+    get:
+      tags:
+      - Projects
+      summary: Get environment
+      description: Obtiene un entorno por nombre o UUID.
+      operationId: get_environment_by_name_or_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      - &id002
+        name: environment_name_or_uuid
+        in: path
+        required: true
+        description: Nombre o UUID del entorno.
+        schema:
+          type: string
+  /projects/{uuid}/environments:
+    get:
+      tags:
+      - Projects
+      summary: List environments
+      description: Lista entornos de un proyecto.
+      operationId: get_environments
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    post:
+      tags:
+      - Projects
+      summary: Create environment
+      description: Crea un entorno en un proyecto.
+      operationId: create_environment
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+            example:
+              name: production
+  /projects/{uuid}/environments/{environment_name_or_uuid}:
+    delete:
+      tags:
+      - Projects
+      summary: Delete environment
+      description: Elimina un entorno.
+      operationId: delete_environment
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      - *id002
+  /resources:
+    get:
+      tags:
+      - Resources
+      summary: List resources
+      description: Lista recursos.
+      operationId: list_resources
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /private-keys:
+    get:
+      tags:
+      - Private Keys
+      summary: List private keys
+      description: Lista claves privadas.
+      operationId: list_private_keys
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Private Keys
+      summary: Create private key
+      description: Crea una clave privada.
+      operationId: create_private_key
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /private-keys/{uuid}:
+    patch:
+      tags:
+      - Private Keys
+      summary: Update private key
+      description: Actualiza una clave privada.
+      operationId: update_private_key
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+    get:
+      tags:
+      - Private Keys
+      summary: Get private key
+      description: Obtiene una clave privada.
+      operationId: get_private_key_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Private Keys
+      summary: Delete private key
+      description: Elimina una clave privada.
+      operationId: delete_private_key_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /servers:
+    get:
+      tags:
+      - Servers
+      summary: List servers
+      description: Lista servidores.
+      operationId: list_servers
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Servers
+      summary: Create server
+      description: Crea un servidor.
+      operationId: create_server
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /servers/{uuid}:
+    get:
+      tags:
+      - Servers
+      summary: Get server
+      description: Obtiene un servidor por UUID.
+      operationId: get_server_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Servers
+      summary: Delete server
+      description: Elimina un servidor por UUID.
+      operationId: delete_server_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Servers
+      summary: Update server
+      description: Actualiza un servidor por UUID.
+      operationId: update_server_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /servers/{uuid}/resources:
+    get:
+      tags:
+      - Servers
+      summary: Get resources by server
+      description: Obtiene recursos de un servidor.
+      operationId: get_resources_by_server_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /servers/{uuid}/domains:
+    get:
+      tags:
+      - Servers
+      summary: Get domains by server
+      description: Obtiene dominios de un servidor.
+      operationId: get_domains_by_server_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /servers/{uuid}/validate:
+    get:
+      tags:
+      - Servers
+      summary: Validate server
+      description: Valida un servidor por UUID.
+      operationId: validate_server_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /services:
+    get:
+      tags:
+      - Services
+      summary: List services
+      description: Lista servicios.
+      operationId: list_services
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Services
+      summary: Create service
+      description: Crea un servicio.
+      operationId: create_service
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UuidResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /services/{uuid}:
+    get:
+      tags:
+      - Services
+      summary: Get service
+      description: Obtiene un servicio por UUID.
+      operationId: get_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    delete:
+      tags:
+      - Services
+      summary: Delete service
+      description: Elimina un servicio por UUID.
+      operationId: delete_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    patch:
+      tags:
+      - Services
+      summary: Update service
+      description: Actualiza un servicio por UUID.
+      operationId: update_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /services/{uuid}/envs:
+    get:
+      tags:
+      - Services
+      summary: List service envs
+      description: Lista variables de entorno del servicio.
+      operationId: list_envs_by_service_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+    post:
+      tags:
+      - Services
+      summary: Create service env
+      description: Crea variable de entorno de servicio.
+      operationId: create_env_by_service_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+    patch:
+      tags:
+      - Services
+      summary: Update service env
+      description: Actualiza variable de entorno de servicio.
+      operationId: update_env_by_service_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /services/{uuid}/envs/bulk:
+    patch:
+      tags:
+      - Services
+      summary: Update service envs bulk
+      description: Actualiza variables de entorno de servicio de forma masiva.
+      operationId: update_envs_by_service_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+  /services/{uuid}/envs/{env_uuid}:
+    delete:
+      tags:
+      - Services
+      summary: Delete service env
+      description: Elimina variable de entorno de servicio.
+      operationId: delete_env_by_service_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+      - name: env_uuid
+        in: path
+        required: true
+        description: UUID de la variable de entorno.
+        schema:
+          type: string
+  /services/{uuid}/start:
+    get:
+      tags:
+      - Services
+      summary: Start service
+      description: Arranca un servicio.
+      operationId: start_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /services/{uuid}/stop:
+    get:
+      tags:
+      - Services
+      summary: Stop service
+      description: Para un servicio.
+      operationId: stop_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /services/{uuid}/restart:
+    get:
+      tags:
+      - Services
+      summary: Restart service
+      description: Reinicia un servicio.
+      operationId: restart_service_by_uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id001
+  /teams:
+    get:
+      tags:
+      - Teams
+      summary: List teams
+      description: Lista equipos.
+      operationId: list_teams
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teams/{id}:
+    get:
+      tags:
+      - Teams
+      summary: Get team
+      description: Obtiene equipo por ID.
+      operationId: get_team_by_id
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - &id003
+        name: id
+        in: path
+        required: true
+        description: ID del equipo.
+        schema:
+          type: integer
+  /teams/{id}/members:
+    get:
+      tags:
+      - Teams
+      summary: Get team members
+      description: Obtiene miembros de un equipo.
+      operationId: get_members_by_team_id
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - *id003
+  /teams/current:
+    get:
+      tags:
+      - Teams
+      summary: Get authenticated team
+      description: Obtiene el equipo autenticado del token.
+      operationId: get_current_team
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teams/current/members:
+    get:
+      tags:
+      - Teams
+      summary: Get authenticated team members
+      description: Obtiene miembros del equipo autenticado.
+      operationId: get_current_team_members
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Respuesta correcta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API token
+  schemas:
+    GenericObject: &id004
+      type: object
+      additionalProperties: true
+    GenericArray:
+      type: array
+      items: *id004
+    UuidResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        uuid:
+          type: string
+    DeployResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        deployments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              message:
+                type: string
+              resource_uuid:
+                type: string
+              deployment_uuid:
+                type: string
+    ErrorResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+  responses:
+    BadRequest:
+      description: Petición incorrecta.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Token ausente, inválido o sin permisos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Error de validación.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+security:
+- bearerAuth: []
