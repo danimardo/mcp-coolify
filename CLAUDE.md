@@ -328,6 +328,173 @@ Cuando diagnostiques problemas:
 
 ---
 
+## Gobernanza, Estándares y Prácticas de Código
+
+Este proyecto implementa una **arquitectura de gobernanza explícita** para todos los agentes de IA que colaboran en él. Estos estándares aseguran calidad, consistencia, trazabilidad y seguridad en el código.
+
+### Documentos Normativos Obligatorios
+
+Antes de implementar cualquier cambio, familia con estos documentos:
+
+1. **`spec.md`** — Especificación técnica completa (arquitectura, protocolo MCP, logging)
+2. **`.specify/memory/constitution.md`** — Principios de diseño, frameworks no-negociables, ADRs
+3. **`logging-events.md`** — Catálogo completo de eventos estables (50+ eventos)
+4. **`specs/001-mcp-coolify/spec.md`** — Especificación de features y criterios de aceptación
+5. **`AGENTS.md`** — Estándares obligatorios para TODOS los agentes
+6. **`CODEX.md`** — Instrucciones específicas para investigaciones y rescues (Codex)
+7. **`GEMINI.md`** — Instrucciones para Gemini (si se integra)
+
+### Reglas de Oro: Confirmación Obligatoria
+
+**Antes de hacer CUALQUIER cambio o añadir una nueva característica:**
+
+Si la intención de lo que se quiere hacer **no está 100% clara** o hay **huecos, dudas, ambigüedades**:
+
+🛑 **PREGUNTA PRIMERO** — No implementes nada sin claridad.
+
+### Disciplina de Cambios
+
+#### 1. Validación contra Especificaciones
+
+Todo cambio debe estar alineado con:
+- ✅ `spec.md` (comportamiento técnico)
+- ✅ `constitution.md` (principios y ADRs)
+- ✅ `specs/001-mcp-coolify/spec.md` (criterios de aceptación)
+
+Si detectas **discrepancias** entre código y documentación:
+- **Opción A**: El código está mal → arreglarlo
+- **Opción B**: La documentación está desactualizada → actualizarla
+- **NUNCA**: Ignorar la discrepancia sin documentar
+
+#### 2. Cambios no Especificados
+
+Si una tarea **no está cubierta** por los documentos normativos:
+
+1. 📝 Propone el cambio como **diff o nota de diseño**
+2. ⏸️ **ESPERA confirmación explícita** antes de aplicar
+3. 📄 Una vez aprobado, **actualiza la documentación**
+
+#### 3. Documentación Obligatoria de Cambios
+
+**Cualquier cambio en el código — sin excepción — debe reflejarse en las especificaciones.**
+
+```
+✅ Debes documentar:
+  - Correcciones de bugs que cambian comportamiento
+  - Ajustes de lógica
+  - Nuevas métricas o eventos de logging
+  - Cambios en reglas de negocio
+  - Cambios en campos de datos
+  - Nuevas variables de entorno
+  
+❌ Puedes omitir documentación SOLO si:
+  - El cambio es puramente interno
+  - NO altera ningún comportamiento observable
+  - Ejemplos: renombrar variable local, reformatear código
+  
+REGLA: Documenta siempre, salvo que justifiques por qué es seguro omitirlo.
+```
+
+#### 4. Trazabilidad y Criterios de Aceptación
+
+Siempre que hagas cambios:
+- 🔗 **Referencia el/los criterio(s) de aceptación** del documento normativo
+- ❓ Si un criterio es ambiguo → **pide aclaración** en lugar de asumir comportamiento
+- 📋 Incluye esa referencia en el commit (si procede)
+
+### Herramientas y Técnicas Modernas
+
+#### Context7 para Documentación Técnica
+
+Cuando necesites consultar documentación de librerías, frameworks o tecnologías:
+
+```bash
+✅ Usa: MCP Context7 para consultar documentación RECIENTE y OFICIAL
+❌ Evita: Asumir sintaxis basada en tu conocimiento previo
+```
+
+**Por qué**: La sintaxis, APIs y mejores prácticas evolucionan. Context7 garantiza que usas versiones actuales.
+
+#### Logging Estructurado
+
+Uso obligatorio del logger compartido:
+
+```typescript
+// ✅ CORRECTO
+import { logger } from '$lib/logging/logger.server';
+logger.info('mcp.tool.completed', {
+  tool: 'restart_application',
+  requestId: 'req-abc123',
+  durationMs: 2543
+});
+
+// ❌ PROHIBIDO
+console.log('Tool completado');
+console.error('Error');
+```
+
+**Regla**: Todos los eventos deben usar nombres estables (`domain.category.event`). Ver `logging-events.md`.
+
+#### Inspección de Logs antes de Adivinar
+
+Cuando algo falla o se comporta anómalo:
+
+```bash
+# 1. LEE LOS LOGS
+tail -f .logs/app.log
+
+# 2. Si el problema no es obvio, sube el nivel
+LOG_LEVEL=debug npm start
+
+# 3. Busca por eventName o requestId
+grep "mcp.tool.failed" .logs/app.log
+grep "req-abc123" .logs/app.log
+
+# 4. Si necesitas ayuda, proporciona logs (sin secrets)
+# NUNCA: Adivines qué pasó sin revisar logs primero
+```
+
+### Refactors y "Arreglos" No Autorizados
+
+**Prohibido**:
+- ❌ Refactorizar código "para mejorar" sin que esté especificado
+- ❌ Hacer "optimizaciones" que cambien comportamiento observable
+- ❌ Reorganizar archivos sin justificación documentada
+- ❌ Cambiar "detalles de implementación" que afecten logs o comportamiento
+
+**Permitido**:
+- ✅ Refactoring puro (sin cambio de comportamiento)
+- ✅ Renombramiento de variables/funciones locales
+- ✅ Reorganización interna si no cambia API pública
+
+**Cuando en duda**: Pregunta y espera confirmación explícita.
+
+### Cumplimiento y Validación
+
+Cada tarea completada debe validarse contra:
+
+```
+Checklist de Finalización:
+□ ¿Están todas las especificaciones relevantes leídas?
+□ ¿El código cumple los criterios de aceptación?
+□ ¿Se emiten los eventos de logging esperados?
+□ ¿Los logs contienen requestId y durationMs?
+□ ¿Los secretos están redactados en logs?
+□ ¿Se actualizó spec.md si el comportamiento observable cambió?
+□ ¿Se validó la tarea en desarrollo?
+□ ¿ESLint y TypeScript pasan sin errores?
+□ ¿Si es bug fix, se agregó test?
+```
+
+### Comunicación Obligatoria
+
+- 🇪🇸 **Idioma**: Español SIEMPRE en explicaciones, comentarios de código y output
+- 📝 **Claridad**: Las instrucciones deben ser legibles para humanos, no máquinas
+- 🔗 **Contexto**: Incluye siempre referencias a documentos o criterios relevantes
+- ⚠️ **Limitaciones**: Si no puedes completar algo, explica por qué y qué se necesitaría
+
+---
+
 **Última actualización**: 2026-05-11
 
 <!-- SPECKIT START -->
