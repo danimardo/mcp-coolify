@@ -1,0 +1,59 @@
+{
+  "name": "@mcp/coolify",
+  "version": "1.0.0-rc.1",
+  "description": "MCP server exposing Coolify API v4 as ~107 tools for AI agents",
+  "type": "module",
+  "main": "./dist/server/index.js",
+  "exports": {
+    ".": "./dist/server/index.js",
+    "./tools": "./dist/lib/tools/index.js",
+    "./logger": "./dist/lib/logging/logger.server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development node --loader tsx ./src/server/index.ts",
+    "start": "NODE_ENV=production node ./dist/server/index.js",
+    "build": "tsc --noEmit && npm run dist",
+    "dist": "tsc",
+    "dist:watch": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --max-warnings 0",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist .logs",
+    "precommit": "npm run lint && npm run type-check && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
+    "pino": "^8.16.1",
+    "pino-pretty": "^10.2.0",
+    "typescript": "^5.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^0.34.0",
+    "eslint": "^8.0.0",
+    "supertest": "^6.3.0",
+    "tsx": "^3.14.0",
+    "typescript-eslint": "^6.0.0",
+    "vitest": "^0.34.0"
+  },
+  "keywords": [
+    "mcp",
+    "coolify",
+    "model-context-protocol",
+    "ai-agent",
+    "infrastructure-management"
+  ],
+  "author": "DevOps Team",
+  "license": "MIT"
+}
