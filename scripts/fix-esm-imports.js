@@ -50,8 +50,10 @@ function processFile(filePath) {
   const originalContent = content;
 
   // Step 1: Clean up duplicate quotes (TypeScript artifact)
-  content = content.replace(/""/g, '"');
-  content = content.replace(/''/g, "'");
+  // Only replace in regular strings, not in template literals to avoid breaking code
+  // Skip this step as it's causing more harm than good
+  // content = content.replace(/""/g, '"');
+  // content = content.replace(/''/g, "'");
 
   // Step 2: Resolve TypeScript path aliases to relative paths
   content = content.replace(
