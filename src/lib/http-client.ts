@@ -43,12 +43,10 @@ class HttpClientInstance {
   private axiosClient: AxiosInstance;
   private logger: Logger;
   private maxRetries: number;
-  private timeout: number;
 
-  constructor(private options: HttpClientOptions) {
+  constructor(options: HttpClientOptions) {
     this.logger = options.logger;
     this.maxRetries = options.maxRetries;
-    this.timeout = options.timeout;
 
     // Create Axios instance with base configuration
     this.axiosClient = axios.create({
@@ -75,7 +73,7 @@ class HttpClientInstance {
       requestId?: string;
     }
   ): Promise<T> {
-    const requestId = options?.requestId || randomUUID();
+    const requestId = options?.requestId ?? randomUUID();
     const startTime = Date.now();
 
     this.logger.debug("coolify.request.started", {
@@ -109,6 +107,7 @@ class HttpClientInstance {
 
         return response.data;
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Axios error type
         lastError = error instanceof AxiosError ? error : null;
 
         if (!lastError) {
@@ -120,7 +119,24 @@ class HttpClientInstance {
 
         // Check if we should retry
         if (attempt < this.maxRetries && isRetryableStatus(statusCode)) {
-          const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+          // Calculate delay: respect Retry-After header for 429, otherwise exponential backoff
+          let delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s default
+
+          if (statusCode === 429 && lastError.response?.headers) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Axios headers are typed as any
+            const retryAfterHeader: string | number | undefined = (lastError.response.headers as Record<string, unknown>)["retry-after"] as string | number | undefined;
+            if (typeof retryAfterHeader === "string") {
+              // Retry-After can be in seconds or HTTP-date format
+              const retryAfterNum = Number(retryAfterHeader);
+              const retryAfterMs = isNaN(retryAfterNum)
+                ? new Date(retryAfterHeader).getTime() - Date.now()
+                : retryAfterNum * 1000;
+
+              if (retryAfterMs > 0) {
+                delay = retryAfterMs;
+              }
+            }
+          }
 
           this.logger.warn("coolify.request.retry", {
             requestId,
@@ -131,6 +147,7 @@ class HttpClientInstance {
             maxRetries: this.maxRetries,
             delayMs: delay,
             durationMs: duration,
+            retryAfterHeader: statusCode === 429 ? lastError.response?.headers["retry-after"] : undefined,
           });
 
           // Wait before retrying
@@ -240,10 +257,10 @@ class HttpClientInstance {
     attempt: number
   ): void {
     const statusCode = error.response?.status;
-    const errorData = error.response?.data;
 
-    if (statusCode === 401 || statusCode === 403) {
-      this.logger.error("coolify.request.failed", {
+    // Log specific error types with appropriate levels and event names
+    if (statusCode === 401) {
+      this.logger.error("coolify.auth.failed", {
         requestId,
         method,
         url,
@@ -251,10 +268,21 @@ class HttpClientInstance {
         statusText: error.response?.statusText,
         durationMs: duration,
         attempt,
-        reason: statusCode === 401 ? "Unauthorized" : "Forbidden",
+        reason: "Unauthorized - Token invalid or expired",
+      });
+    } else if (statusCode === 403) {
+      this.logger.error("coolify.request.forbidden", {
+        requestId,
+        method,
+        url,
+        status: statusCode,
+        statusText: error.response?.statusText,
+        durationMs: duration,
+        attempt,
+        reason: "Forbidden - Insufficient permissions",
       });
     } else if (statusCode === 404) {
-      this.logger.warn("coolify.request.failed", {
+      this.logger.warn("coolify.request.not_found", {
         requestId,
         method,
         url,
@@ -262,16 +290,16 @@ class HttpClientInstance {
         statusText: error.response?.statusText,
         durationMs: duration,
         attempt,
-        reason: "Not Found",
       });
     } else if (statusCode === 429) {
-      this.logger.warn("coolify.request.rate_limited", {
+      this.logger.warn("coolify.rate_limit.exceeded", {
         requestId,
         method,
         url,
         status: statusCode,
         durationMs: duration,
         attempt,
+        retryAfter: error.response?.headers["retry-after"],
       });
     } else {
       this.logger.error("coolify.request.failed", {
@@ -283,7 +311,6 @@ class HttpClientInstance {
         durationMs: duration,
         attempt,
         message: error.message,
-        data: errorData,
       });
     }
   }

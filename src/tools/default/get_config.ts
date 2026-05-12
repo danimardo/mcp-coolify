@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import type { ExtendedToolContext } from "$lib/tools/types";
 import { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 
@@ -75,10 +76,10 @@ export const getConfigDefinition: ToolDefinition = {
  */
 async function getConfigHandler(
   _parameters: unknown,
-  context: any
-): Promise<unknown> {
+  context: ExtendedToolContext
+): Promise<Record<string, unknown>> {
   // Call Coolify API config endpoint
-  const response = await context.httpClient.get("/config", {
+  const response = await context.httpClient.get<Record<string, unknown>>("/config", {
     requestId: context.requestId,
   });
 
@@ -91,7 +92,7 @@ async function getConfigHandler(
 /**
  * Remove sensitive configuration fields
  */
-function sanitizeConfig(config: any): any {
+function sanitizeConfig(config: Record<string, unknown>): Record<string, unknown> {
   const sensitiveKeys = [
     "token",
     "password",
@@ -104,7 +105,7 @@ function sanitizeConfig(config: any): any {
     "dbPassword",
   ];
 
-  const sanitized: any = {};
+  const sanitized: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(config)) {
     if (
@@ -114,7 +115,7 @@ function sanitizeConfig(config: any): any {
     ) {
       sanitized[key] = "[REDACTED]";
     } else if (typeof value === "object" && value !== null) {
-      sanitized[key] = sanitizeConfig(value);
+      sanitized[key] = sanitizeConfig(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;
     }

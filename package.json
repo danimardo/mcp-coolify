@@ -30,6 +30,7 @@
     "@modelcontextprotocol/sdk": "^1.0.0",
     "axios": "^1.6.0",
     "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
     "dotenv": "^16.3.1",
     "pino": "^8.16.1",
     "pino-pretty": "^10.2.0",
@@ -44,7 +45,6 @@
     "eslint": "^8.0.0",
     "supertest": "^6.3.0",
     "tsx": "^3.14.0",
-    "typescript-eslint": "^6.0.0",
     "vitest": "^0.34.0"
   },
   "keywords": [

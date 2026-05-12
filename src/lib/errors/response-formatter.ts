@@ -4,7 +4,17 @@
  */
 
 import { Logger } from "../logging/types";
-import { CoolifyError } from "./error-types";
+import {
+  CoolifyError,
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  ServerError,
+  TimeoutError,
+} from "./error-types";
 import { ErrorResponse } from "../schemas/common";
 
 /**
@@ -69,17 +79,27 @@ export function logError(
   }
 ): void {
   if (error instanceof CoolifyError) {
-    const level = error.statusCode >= 500 ? "error" : "warn";
-    const method = level === "error" ? logger.error : logger.warn;
+    const level = error.statusCode >= 500 ? "error" as const : "warn" as const;
 
-    method("coolify.request.failed", {
-      requestId: context.requestId,
-      operation: context.operation,
-      toolName: context.toolName,
-      errorCode: error.errorCode,
-      message: error.message,
-      statusCode: error.statusCode,
-    });
+    if (level === "error") {
+      logger.error("coolify.request.failed", {
+        requestId: context.requestId,
+        operation: context.operation,
+        toolName: context.toolName,
+        errorCode: error.errorCode,
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    } else {
+      logger.warn("coolify.request.failed", {
+        requestId: context.requestId,
+        operation: context.operation,
+        toolName: context.toolName,
+        errorCode: error.errorCode,
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
   } else if (error instanceof Error) {
     logger.error("error.unexpected", {
       requestId: context.requestId,
@@ -101,35 +121,35 @@ export function statusCodeToError(
 ): CoolifyError {
   switch (statusCode) {
     case 400:
-      return new (require("./error-types")).ValidationError(message, responseData);
+      return new ValidationError(message, responseData as Record<string, string>);
 
     case 401:
-      return new (require("./error-types")).UnauthorizedError(message);
+      return new UnauthorizedError(message);
 
     case 403:
-      return new (require("./error-types")).ForbiddenError(message);
+      return new ForbiddenError(message);
 
     case 404:
-      return new (require("./error-types")).NotFoundError(message);
+      return new NotFoundError(message);
 
     case 409:
-      return new (require("./error-types")).ConflictError(message, responseData);
+      return new ConflictError(message, responseData);
 
     case 429:
-      return new (require("./error-types")).RateLimitError(message);
+      return new RateLimitError(message);
 
     case 500:
-      return new (require("./error-types")).ServerError(message, responseData);
+      return new ServerError(message, responseData);
 
     case 502:
     case 503:
-      return new (require("./error-types")).ServerError(message, responseData);
+      return new ServerError(message, responseData);
 
     case 504:
-      return new (require("./error-types")).TimeoutError(message);
+      return new TimeoutError(message);
 
     default:
-      return new (require("./error-types")).ServerError(
+      return new ServerError(
         `HTTP ${statusCode}: ${message}`,
         responseData
       );

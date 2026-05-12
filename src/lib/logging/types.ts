@@ -14,6 +14,10 @@ export type EventName =
   | "app.bootstrap.started"
   | "app.bootstrap.config_loaded"
   | "app.bootstrap.token_validated"
+  | "app.bootstrap.token_validation_failed"
+  | "app.bootstrap.token_validation_skipped"
+  | "app.bootstrap.server_initialized"
+  | "app.bootstrap.completed"
   | "app.bootstrap.failed"
 
   // Tool invocation events
@@ -28,12 +32,17 @@ export type EventName =
   | "coolify.request.retry"
   | "coolify.request.failed"
   | "coolify.request.rate_limited"
+  | "coolify.request.not_found"
+  | "coolify.request.forbidden"
+  | "coolify.auth.failed"
+  | "coolify.rate_limit.exceeded"
 
   // Confirmation flow events
   | "operation.confirmation.requested"
   | "operation.confirmed"
   | "operation.cancelled"
   | "operation.confirmation.expired"
+  | "operation.confirmation_failed"
 
   // Safety events
   | "read_only.blocked_operation"
@@ -43,7 +52,17 @@ export type EventName =
 
   // Response validation
   | "response.validation_failed"
-  | "response.validation_passed";
+  | "response.validation_passed"
+
+  // Registry events
+  | "tool.registered"
+
+  // Error events
+  | "error.unexpected"
+  | "error.non_error_thrown"
+
+  // Shutdown events
+  | "app.shutdown.requested";
 
 /**
  * Structured log entry - what gets written to logs

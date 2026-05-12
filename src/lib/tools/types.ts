@@ -4,8 +4,9 @@
  */
 
 import { z } from "zod";
-import { Logger } from "../logging/types";
-import { ToolContext } from "../logging/types";
+import type { ToolContext } from "../logging/types";
+
+export type { ToolContext };
 
 /**
  * Tool categories in MCP Coolify
@@ -60,7 +61,7 @@ export interface ToolDefinition {
  */
 export interface ExtendedToolContext extends ToolContext {
   config: {
-    coolifyUrl: string;
+    coolifyBaseUrl: string;
     readOnly: boolean;
     requestTimeout: number;
   };
@@ -103,6 +104,7 @@ export interface ToolResponse<T = unknown> {
     requestId: string;
     duration: number;
     timestamp: string;
+    confirmationToken?: string;
   };
 }
 

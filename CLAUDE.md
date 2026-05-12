@@ -498,6 +498,18 @@ Checklist de Finalización:
 **Última actualización**: 2026-05-11
 
 <!-- SPECKIT START -->
+**Implementation Plan Reference**: `specs/001-mcp-coolify/plan.md`
+
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan:
+- **plan.md** — Implementation plan, architecture decisions, complexity tracking
+- **spec.md** — Complete technical specification (~700 lines)
+- **research.md** — Phase 0 research and clarifications
+- **data-model.md** — Phase 1 entities and relationships
+- **contracts/tool-definitions.md** — MCP tool schema and contracts
+- **quickstart.md** — Setup, environment variables, first-run tests
+
+**Constitution**: `.specify/memory/constitution.md` — Non-negotiable principles, ADRs, frameworks
+
+All design artifacts are in `specs/001-mcp-coolify/` directory.
 <!-- SPECKIT END -->

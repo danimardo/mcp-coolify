@@ -5,10 +5,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ConfirmationFlow, requiresConfirmation, getConfirmationReason } from "./flow";
 import { initializeLogger } from "../logging/logger.server";
+import type { Logger } from "../logging/types";
 
 describe("Confirmation Flow", () => {
   let flow: ConfirmationFlow;
-  let logger: any;
+  let logger: Logger;
 
   beforeEach(() => {
     logger = initializeLogger({

@@ -8,9 +8,9 @@
  */
 
 import { z } from "zod";
+import type { ExtendedToolContext } from "$lib/tools/types";
 import { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
-import { healthCheckResponseSchema } from "$lib/schemas/coolify-responses";
 
 /**
  * Tool parameters (none required)
@@ -57,10 +57,10 @@ export const getStatusDefinition: ToolDefinition = {
  */
 async function getStatusHandler(
   _parameters: unknown,
-  context: any
-): Promise<unknown> {
+  context: ExtendedToolContext
+): Promise<Record<string, unknown>> {
   // Call Coolify API health endpoint
-  const response = await context.httpClient.get("/health", {
+  const response = await context.httpClient.get<Record<string, unknown>>("/health", {
     requestId: context.requestId,
   });
 

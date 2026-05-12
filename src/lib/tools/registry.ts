@@ -38,8 +38,8 @@ export class ToolRegistryImpl implements ToolRegistry {
     this.logger.debug("tool.registered", {
       toolName: definition.name,
       category: definition.category,
-      requiresConfirmation: definition.requiresConfirmation || false,
-      readOnlyBlocks: definition.readOnlyBlocks || false,
+      requiresConfirmation: definition.requiresConfirmation ?? false,
+      readOnlyBlocks: definition.readOnlyBlocks ?? false,
     });
   }
 
@@ -61,7 +61,7 @@ export class ToolRegistryImpl implements ToolRegistry {
    * List tools by category
    */
   listByCategory(category: ToolCategory): ToolDefinitionWithHandler[] {
-    return this.byCategory.get(category) || [];
+    return this.byCategory.get(category) ?? [];
   }
 
   /**
@@ -75,7 +75,7 @@ export class ToolRegistryImpl implements ToolRegistry {
    * Get count by category
    */
   countByCategory(category: ToolCategory): number {
-    return this.byCategory.get(category)?.length || 0;
+    return this.byCategory.get(category)?.length ?? 0;
   }
 
   /**

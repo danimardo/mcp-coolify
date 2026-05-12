@@ -10,9 +10,10 @@ import {
 } from "./readonly-guard";
 import { ReadOnlyError } from "../errors/error-types";
 import { initializeLogger } from "../logging/logger.server";
+import type { Logger } from "../logging/types";
 
 describe("READ_ONLY Guard", () => {
-  let logger: any;
+  let logger: Logger;
 
   beforeEach(() => {
     logger = initializeLogger({

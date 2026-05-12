@@ -559,12 +559,72 @@ async function invokeWithRetry(fn, maxRetries = 3) {
 
 ---
 
+## Agent Governance Principles
+
+**Versionado de Gobernanza**: 1.0.0 | **Efectivo desde**: 2026-05-11
+
+Este proyecto implementa una **arquitectura de gobernanza explícita para agentes de IA**. Todos los agentes que colaboran en MCP Coolify deben adherirse a estos principios y documentos.
+
+### Documentos de Gobernanza Obligatorios
+
+**TODOS los agentes DEBEN leer y seguir**:
+
+1. **`AGENTS.md`** (Maestro de Estándares)
+   - Estándares MANDATORIOS para cualquier agente
+   - 11 secciones de reglas no-negociables
+   - Checklists de compliance
+   - Referencia definitiva
+
+2. **Instrucciones Específicas por Agente**:
+   - **`CLAUDE.md`** — Para Claude Code (implementación)
+   - **`CODEX.md`** — Para Codex (investigación y rescues)
+   - **`GEMINI.md`** — Para Gemini (validación cruzada, análisis)
+
+3. **Guía Operacional**:
+   - **`docs/agent-practices.md`** — Flujos, checklists, coordinación
+
+### Jerarquía de Autoridad
+
+```
+constitution.md (Principles)
+    ↓ RIGE
+AGENTS.md (Estándares mandatorios)
+    ↓ INSTANCIA ESPECÍFICA DE
+CLAUDE.md, CODEX.md, GEMINI.md
+    ↓ OPERACIONAL EN
+docs/agent-practices.md
+```
+
+### Las 5 Reglas de Oro (Resumen)
+
+1. 📖 **Documenta primero** — Spec es la verdad. Código debe alinearse.
+2. 🛑 **Pregunta antes** — Ambigüedad = pregunta, no adivinanza.
+3. 📝 **Logging obligatorio** — Todo evento estable, todo con requestId, redacta secretos.
+4. 🔍 **Inspecciona logs** — Problema = primero leer `.logs/app.log`, no adivinar.
+5. ✅ **Valida todo** — Zod para inputs, TypeScript strict, testing mínimo.
+
+### Compliance
+
+**Cada agente es responsable de**:
+- ✅ Leer AGENTS.md completo antes de trabajar
+- ✅ Seguir instrucciones específicas de su agente (CLAUDE.md, etc.)
+- ✅ Validar cambios contra spec.md y constitution.md
+- ✅ Documentar cambios observables
+- ✅ Usar logging estructurado con eventos estables
+- ✅ Pedir claridad antes de asumir
+
+**Validación**: Checklists en AGENTS.md sección XI
+
+---
+
 ## Documentación Relacionada
 
 ### Arquitectura & Visión
 - **`constitution.md`** (este archivo) — Principios, frameworks, ADRs, governance (~1500 líneas)
 - **`spec.md`** — Arquitectura técnica, protocolo MCP, logging detallado (~1500 líneas)
-- **`CLAUDE.md`** — Guía de diagnostico para agentes IA, logging, troubleshooting
+- **`CLAUDE.md`** — Guía de diagnóstico para agentes IA, logging, troubleshooting
+- **`AGENTS.md`** — Estándares mandatorios para TODOS los agentes
+- **`docs/agent-practices.md`** — Guía operacional de gobernanza y flujos de trabajo
 
 ### Especificaciones & API
 - **`specifications.md`** — Catálogo de ~107 tools, 13 categorías, parámetros, errores (~2500 líneas)

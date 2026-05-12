@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import type { ExtendedToolContext } from "$lib/tools/types";
 import { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 
@@ -68,7 +69,7 @@ export const testConnectionDefinition: ToolDefinition = {
  */
 async function testConnectionHandler(
   _parameters: unknown,
-  context: any
+  context: ExtendedToolContext
 ): Promise<unknown> {
   const checks = {
     endpoint_reachable: false,
@@ -103,7 +104,7 @@ async function testConnectionHandler(
 
     // Check 3: Server health
     try {
-      const health = await context.httpClient.get("/health", {
+      const health = await context.httpClient.get<{ status: string }>("/health", {
         requestId: context.requestId,
       });
       if (health.status === "healthy" || health.status === "degraded") {

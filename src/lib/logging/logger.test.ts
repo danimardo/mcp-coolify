@@ -17,13 +17,13 @@ describe("Logger", () => {
     });
 
     expect(logger).toBeDefined();
-    expect(logger.trace).toBeDefined();
-    expect(logger.debug).toBeDefined();
-    expect(logger.info).toBeDefined();
-    expect(logger.warn).toBeDefined();
-    expect(logger.error).toBeDefined();
-    expect(logger.fatal).toBeDefined();
-    expect(logger.child).toBeDefined();
+    expect(typeof logger.trace).toBe("function");
+    expect(typeof logger.debug).toBe("function");
+    expect(typeof logger.info).toBe("function");
+    expect(typeof logger.warn).toBe("function");
+    expect(typeof logger.error).toBe("function");
+    expect(typeof logger.fatal).toBe("function");
+    expect(typeof logger.child).toBe("function");
   });
 
   it("should create child logger with context", () => {
@@ -129,7 +129,7 @@ describe("Secret Sanitization", () => {
 
     expect(() => {
       logger.info("app.bootstrap.started", undefined);
-      logger.info("app.bootstrap.started", null as any);
+      logger.info("app.bootstrap.started", null as unknown as Record<string, unknown>);
     }).not.toThrow();
   });
 });

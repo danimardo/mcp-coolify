@@ -11,8 +11,8 @@ import { ErrorResponse } from "../schemas/common";
 export abstract class CoolifyError extends Error {
   abstract statusCode: number;
   abstract errorCode: string;
-  abstract hint?: string;
-  abstract details?: unknown;
+  hint?: string;
+  details?: unknown;
 
   constructor(message: string) {
     super(message);
@@ -53,6 +53,7 @@ export class ValidationError extends CoolifyError {
 export class NotFoundError extends CoolifyError {
   statusCode = 404;
   errorCode = "NOT_FOUND";
+  hint?: string;
 
   constructor(
     message: string,
@@ -60,13 +61,11 @@ export class NotFoundError extends CoolifyError {
     public resourceId?: string
   ) {
     super(message);
-  }
-
-  get hint(): string {
-    if (this.resourceType && this.resourceId) {
-      return `${this.resourceType} "${this.resourceId}" does not exist`;
+    if (resourceType && resourceId) {
+      this.hint = `${resourceType} "${resourceId}" does not exist`;
+    } else {
+      this.hint = "The requested resource was not found";
     }
-    return "The requested resource was not found";
   }
 }
 

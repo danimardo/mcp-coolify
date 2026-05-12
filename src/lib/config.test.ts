@@ -2,8 +2,8 @@
  * Tests for configuration management
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { getConfig, resetConfig, loadConfig } from "./config";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { getConfig, resetConfig } from "./config";
 
 describe("Configuration", () => {
   const originalEnv = process.env;
@@ -11,31 +11,36 @@ describe("Configuration", () => {
   beforeEach(() => {
     resetConfig();
     process.env = { ...originalEnv };
+    vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("process.exit called");
+    }) as never);
   });
 
   afterEach(() => {
     process.env = originalEnv;
     resetConfig();
+    vi.restoreAllMocks();
   });
 
   it("should load valid configuration", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.NODE_ENV = "development";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
 
     resetConfig();
     const config = getConfig();
 
     expect(config).toBeDefined();
-    expect(config.coolifyUrl).toBe("https://coolify.example.com");
-    expect(config.coolifyToken).toBe("test-token-123");
+    expect(config.coolifyBaseUrl).toBe("https://coolify.example.com/api/v1");
+    expect(config.coolifyToken).toBe("tr_test_token_123");
     expect(config.nodeEnv).toBe("development");
     expect(config.logLevel).toBe("info");
     expect(config.readOnly).toBe(false);
   });
 
   it("should use default values when not provided", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
 
     resetConfig();
     const config = getConfig();
@@ -47,11 +52,12 @@ describe("Configuration", () => {
     expect(config.readOnly).toBe(false);
     expect(config.requestTimeout).toBe(30000);
     expect(config.maxRetries).toBe(3);
+    expect(config.validateTokenOnStartup).toBe(true);
   });
 
   it("should override defaults with env vars", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
     process.env.PORT = "5000";
     process.env.LOG_LEVEL = "debug";
     process.env.READ_ONLY = "true";
@@ -65,8 +71,8 @@ describe("Configuration", () => {
   });
 
   it("should parse numeric env vars correctly", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
     process.env.REQUEST_TIMEOUT = "60000";
     process.env.MAX_RETRIES = "5";
 
@@ -78,8 +84,8 @@ describe("Configuration", () => {
   });
 
   it("should validate LOG_LEVEL enum", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
     process.env.LOG_LEVEL = "invalid";
 
     resetConfig();
@@ -87,23 +93,23 @@ describe("Configuration", () => {
   });
 
   it("should validate URL format", () => {
-    process.env.COOLIFY_URL = "not-a-url";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "not-a-url";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
 
     resetConfig();
     expect(() => getConfig()).toThrow();
   });
 
-  it("should require COOLIFY_URL", () => {
-    delete process.env.COOLIFY_URL;
-    process.env.COOLIFY_TOKEN = "test-token-123";
+  it("should require COOLIFY_BASE_URL", () => {
+    delete process.env.COOLIFY_BASE_URL;
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
 
     resetConfig();
     expect(() => getConfig()).toThrow();
   });
 
   it("should require COOLIFY_TOKEN", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
     delete process.env.COOLIFY_TOKEN;
 
     resetConfig();
@@ -111,8 +117,8 @@ describe("Configuration", () => {
   });
 
   it("should return singleton instance", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
 
     resetConfig();
     const config1 = getConfig();
@@ -122,8 +128,8 @@ describe("Configuration", () => {
   });
 
   it("should validate port range", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
     process.env.PORT = "99999";
 
     resetConfig();
@@ -131,8 +137,8 @@ describe("Configuration", () => {
   });
 
   it("should validate request timeout constraints", () => {
-    process.env.COOLIFY_URL = "https://coolify.example.com";
-    process.env.COOLIFY_TOKEN = "test-token-123";
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
     process.env.REQUEST_TIMEOUT = "500"; // Less than 1000
 
     resetConfig();

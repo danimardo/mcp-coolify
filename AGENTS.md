@@ -501,3 +501,8 @@ Pregunta SIEMPRE si:
 **Última actualización**: 2026-05-11  
 **Versión**: 1.0.0  
 **Aplicable a**: Todos los agentes de IA
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

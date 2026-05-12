@@ -2,12 +2,13 @@
  * Tests for HTTP client
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createHttpClient } from "./http-client";
 import { initializeLogger } from "./logging/logger.server";
+import type { Logger } from "./logging/types";
 
 describe("HTTP Client", () => {
-  let mockLogger: any;
+  let mockLogger: Logger;
 
   beforeEach(() => {
     mockLogger = initializeLogger({
@@ -49,7 +50,7 @@ describe("HTTP Client", () => {
     expect(typeof client.put).toBe("function");
   });
 
-  it("should handle request options", async () => {
+  it("should handle request options", () => {
     const client = createHttpClient({
       baseURL: "https://httpbin.org",
       token: "test-token",
@@ -60,7 +61,7 @@ describe("HTTP Client", () => {
 
     // This will likely fail without a real API, but tests the structure
     expect(() => {
-      client.get("/get", {
+      void client.get("/get", {
         params: { test: "value" },
         requestId: "req-123",
       });
@@ -86,7 +87,7 @@ describe("HTTP Client", () => {
 });
 
 describe("Retry Logic", () => {
-  let mockLogger: any;
+  let mockLogger: Logger;
 
   beforeEach(() => {
     mockLogger = initializeLogger({
@@ -118,7 +119,7 @@ describe("Retry Logic", () => {
 });
 
 describe("Bearer Token Authentication", () => {
-  let mockLogger: any;
+  let mockLogger: Logger;
 
   beforeEach(() => {
     mockLogger = initializeLogger({

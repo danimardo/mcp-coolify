@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import type { ExtendedToolContext } from "$lib/tools/types";
 import { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 
@@ -59,7 +60,7 @@ export const validateTokenDefinition: ToolDefinition = {
  */
 async function validateTokenHandler(
   _parameters: unknown,
-  context: any
+  context: ExtendedToolContext
 ): Promise<unknown> {
   // Call Coolify API to validate current token
   const response = await context.httpClient.get("/auth/validate", {

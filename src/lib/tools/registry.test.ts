@@ -2,14 +2,18 @@
  * Tests for tool registry
  */
 
+/* eslint-disable @typescript-eslint/require-await */
+
 import { describe, it, expect, beforeEach } from "vitest";
-import { createToolRegistry } from "./registry";
+import { createToolRegistry, type ToolRegistryImpl } from "./registry";
 import { initializeLogger } from "../logging/logger.server";
+import type { Logger } from "../logging/types";
+import type { ToolRegistry } from "./types";
 import { z } from "zod";
 
 describe("Tool Registry", () => {
-  let registry: any;
-  let logger: any;
+  let registry: ToolRegistry;
+  let logger: Logger;
 
   beforeEach(() => {
     logger = initializeLogger({
@@ -199,7 +203,7 @@ describe("Tool Registry", () => {
       async () => ({})
     );
 
-    const summary = (registry as any).getSummary();
+    const summary = (registry as unknown as ToolRegistryImpl).getSummary();
     expect(summary.default).toBe(1);
     expect(summary.teams).toBe(1);
     expect(summary.applications).toBe(0);

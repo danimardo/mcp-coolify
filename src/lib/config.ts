@@ -4,20 +4,29 @@
  */
 
 import { z } from "zod";
-import { logger } from "./logging/logger.server";
 
 const configSchema = z.object({
   // Coolify API Configuration (required)
-  coolifyUrl: z
+  coolifyBaseUrl: z
     .string()
-    .min(1, "COOLIFY_URL is required")
-    .url("COOLIFY_URL must be a valid URL")
-    .describe("Coolify API base URL"),
+    .min(1, "COOLIFY_BASE_URL is required")
+    .url("COOLIFY_BASE_URL must be a valid URL")
+    .refine(
+      (url) => url.endsWith("/api/v1"),
+      "COOLIFY_BASE_URL must end with /api/v1 (e.g., https://coolify.example.com/api/v1)"
+    )
+    .describe("Coolify API base URL (must include /api/v1)"),
 
   coolifyToken: z
     .string()
     .min(1, "COOLIFY_TOKEN is required")
-    .describe("Coolify API authentication token"),
+    .regex(/^tr_/, "COOLIFY_TOKEN must start with 'tr_'")
+    .describe("Coolify API authentication token (Bearer token)"),
+
+  validateTokenOnStartup: z
+    .boolean()
+    .default(true)
+    .describe("Validate Coolify token by calling /version endpoint on startup"),
 
   // Server Configuration
   nodeEnv: z
@@ -85,8 +94,9 @@ export type AppConfig = z.infer<typeof configSchema>;
  */
 export function loadConfig(): AppConfig {
   const envVars = {
-    coolifyUrl: process.env.COOLIFY_URL,
+    coolifyBaseUrl: process.env.COOLIFY_BASE_URL,
     coolifyToken: process.env.COOLIFY_TOKEN,
+    validateTokenOnStartup: process.env.VALIDATE_TOKEN_ON_STARTUP === "false" ? false : true,
     nodeEnv: process.env.NODE_ENV,
     port: process.env.PORT ? parseInt(process.env.PORT, 10) : undefined,
     logLevel: process.env.LOG_LEVEL,
@@ -114,8 +124,11 @@ export function loadConfig(): AppConfig {
         )
         .join("\n");
 
+      // eslint-disable-next-line no-console -- No logger available before bootstrap, fatal config error
       console.error("Configuration validation failed:");
+      // eslint-disable-next-line no-console
       console.error(errorMessage);
+      // eslint-disable-next-line no-console
       console.error("\nPlease check your .env file or environment variables.");
 
       process.exit(1);

@@ -12,11 +12,9 @@
 
 import { z } from "zod";
 import { ExtendedToolContext, ToolHandler, ToolResponse } from "./types";
-import { Logger } from "../logging/types";
 import {
   ValidationError,
   ResponseValidationError,
-  CoolifyError,
 } from "../errors/error-types";
 import { formatErrorResponse, logError } from "../errors/response-formatter";
 import { guardReadOnly, isDestructiveOperation } from "../safety/readonly-guard";
@@ -50,12 +48,12 @@ export function createBaseTool(
     logger.debug("mcp.tool.invoked", {
       requestId,
       toolName,
-      requiresConfirmation: options?.requiresConfirmation || false,
+      requiresConfirmation: options?.requiresConfirmation ?? false,
     });
 
     try {
       // Phase 2: Check READ_ONLY guard
-      if (options?.readOnlyBlocks || isDestructiveOperation(toolName)) {
+      if (options?.readOnlyBlocks ?? isDestructiveOperation(toolName)) {
         guardReadOnly(toolName, context.config.readOnly, logger);
       }
 
@@ -65,10 +63,11 @@ export function createBaseTool(
         validatedParameters = await parameterSchema.parseAsync(parameters);
       } catch (error) {
         if (error instanceof z.ZodError) {
+          const errorPaths = error.errors.map((e: z.ZodIssue) => e.path.map((p: string | number) => String(p)).join(".")).join(", ");
           const validationError = new ValidationError(
-            `Parameter validation failed: ${error.errors.map((e) => e.path.join("."))}`,
-            error.errors.reduce(
-              (acc, err) => ({
+            `Parameter validation failed: ${errorPaths}`,
+            error.errors.reduce<Record<string, string>>(
+              (acc: Record<string, string>, err: z.ZodIssue) => ({
                 ...acc,
                 [err.path.join(".")]: err.message,
               }),
@@ -89,12 +88,12 @@ export function createBaseTool(
 
       // Phase 4: Check confirmation requirement
       const confirmationFlow = new ConfirmationFlow(logger);
-      if (options?.requiresConfirmation || requiresConfirmation(toolName)) {
+      if (options?.requiresConfirmation ?? requiresConfirmation(toolName)) {
         if (!confirmationFlow.isConfirmed(requestId)) {
           const token = confirmationFlow.requestConfirmation({
             operationId: requestId,
             operationName: toolName,
-            parameters: validatedParameters,
+            parameters: validatedParameters as Record<string, unknown>,
             reason: getConfirmationReason(toolName),
             requiredConfirmation: true,
           });
@@ -112,7 +111,7 @@ export function createBaseTool(
               timestamp: new Date().toISOString(),
               confirmationToken: token,
             },
-          } as ToolResponse;
+          } satisfies ToolResponse;
         }
 
         // Operation was confirmed
@@ -150,7 +149,7 @@ export function createBaseTool(
 
       // Phase 7: Log success
       const duration = Date.now() - startTime;
-      logger.debug("mcp.tool.completed", {
+      logger.info("mcp.tool.completed", {
         requestId,
         toolName,
         durationMs: duration,
@@ -165,7 +164,7 @@ export function createBaseTool(
           duration,
           timestamp: new Date().toISOString(),
         },
-      } as ToolResponse;
+      } satisfies ToolResponse;
     } catch (error) {
       // Phase 8: Handle errors
       const duration = Date.now() - startTime;
@@ -178,7 +177,7 @@ export function createBaseTool(
 
       const errorResponse = formatErrorResponse(error, logger, requestId);
 
-      logger.debug("mcp.tool.failed", {
+      logger.warn("mcp.tool.failed", {
         requestId,
         toolName,
         durationMs: duration,
@@ -187,13 +186,17 @@ export function createBaseTool(
 
       return {
         success: false,
-        error: errorResponse,
+        error: {
+          code: errorResponse.error || "UNKNOWN_ERROR",
+          message: errorResponse.message,
+          hint: errorResponse.hint,
+        },
         meta: {
           requestId,
           duration,
           timestamp: new Date().toISOString(),
         },
-      } as ToolResponse;
+      } satisfies ToolResponse;
     }
   };
 }

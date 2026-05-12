@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { uuidSchema, timestampSchema, isoDateSchema } from "./common";
+import { uuidSchema, isoDateSchema } from "./common";
 
 // === Common Response Types ===
 
