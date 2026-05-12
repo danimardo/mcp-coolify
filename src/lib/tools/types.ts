@@ -23,6 +23,7 @@ export type ToolCategory =
   | "servers"
   | "resources"
   | "monitoring"
+  | "environments"
   | "private-keys"
   | "github-apps"
   | "cloud-tokens"
