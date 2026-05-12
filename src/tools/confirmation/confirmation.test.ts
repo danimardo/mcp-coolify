@@ -2,7 +2,7 @@
  * Tests para el tool de confirmación
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { randomUUID } from "crypto";
 import type { ExtendedToolContext } from "$lib/tools/types";
 import { ConfirmationFlow } from "$lib/confirmation/flow";

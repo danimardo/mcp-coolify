@@ -33,7 +33,7 @@ export interface ConfirmationToken {
  */
 class ConfirmationStore {
   private pendingConfirmations = new Map<string, ConfirmationToken>();
-  private confirmedOperations = new Set<string>();
+  private confirmedOperations = new Map<string, number>(); // operationId -> expiresAt
 
   /**
    * Create a new confirmation token
@@ -72,18 +72,32 @@ class ConfirmationStore {
       return false;
     }
 
-    // Token is valid - mark operation as confirmed and remove token
-    this.confirmedOperations.add(operationId);
+    // Token is valid - mark operation as confirmed
+    // Confirmations stay active for 30 seconds to allow agent to retry
+    const confirmedExpiresAt = Date.now() + 30 * 1000;
+    this.confirmedOperations.set(operationId, confirmedExpiresAt);
     this.pendingConfirmations.delete(token);
 
     return true;
   }
 
   /**
-   * Check if operation was confirmed
+   * Check if operation was confirmed (cleanup expired confirmations)
    */
   isConfirmed(operationId: string): boolean {
-    return this.confirmedOperations.has(operationId);
+    const expiresAt = this.confirmedOperations.get(operationId);
+
+    if (!expiresAt) {
+      return false;
+    }
+
+    // Check if confirmation expired
+    if (expiresAt < Date.now()) {
+      this.confirmedOperations.delete(operationId);
+      return false;
+    }
+
+    return true;
   }
 
   /**
