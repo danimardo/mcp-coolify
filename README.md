@@ -195,6 +195,58 @@ Estas 19 operaciones requieren confirmación explícita del usuario:
 - `create_private_key`, `create_cloud_token`, `create_github_app`
 - `create_application_environment_variable` (con secreto)
 
+### Flujo de Confirmación Explícita
+
+Para operaciones críticas, el MCP implementa un flujo de confirmación en 4 pasos:
+
+```
+1. Agente invoca operación crítica
+   ↓
+2. Servidor devuelve:
+   {
+     requiresConfirmation: true,
+     operationId: "550e8400-...",
+     confirmationToken: "a1b2c3d4-...",
+     reason: "Destructive operation - application will be permanently deleted"
+   }
+   ↓
+3. Agente invoca confirm_operation(operationId, confirmationToken)
+   ↓
+4. Agente reinvoca la operación original (se ejecuta sin pedir confirmación nuevamente)
+```
+
+**Características**:
+- Tokens expiran después de 5 minutos de inactividad
+- Cada token es un UUID aleatorio (imposible de predecir)
+- Confirmaciones se marcan con event `operation.confirmed` en logs
+- Operaciones confirmadas quedan vigentes 30 segundos para reinvocación
+
+**Ejemplo en Claude Code**:
+```
+@coolify restart_application --uuid app-123
+
+→ Respuesta: {
+    requiresConfirmation: true,
+    operationId: "op-abc123...",
+    confirmationToken: "token-xyz789..."
+}
+
+@coolify confirm_operation --operationId op-abc123... --token token-xyz789...
+
+→ Respuesta: {
+    success: true,
+    message: "Confirmación aceptada. La operación se ejecutará."
+}
+
+@coolify restart_application --uuid app-123
+
+→ Respuesta: {
+    uuid: "app-123",
+    action: "restart",
+    status: "scheduled"
+}
+```
+
 ### Modo READ_ONLY
 
 Para testing y validación sin side effects:
