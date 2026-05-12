@@ -27,6 +27,7 @@ export type ToolCategory =
   | "gits"
   | "registries"
   | "networks"
+  | "webhooks"
   | "private-keys"
   | "github-apps"
   | "cloud-tokens"
