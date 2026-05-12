@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import { uuidSchema, isoDateSchema } from "$lib/schemas/common";
+import { coolifyIdSchema, uuidSchema, isoDateSchema } from "$lib/schemas/common";
 
 // === Esquemas de Parámetros de Entrada ===
 
@@ -14,7 +14,7 @@ import { uuidSchema, isoDateSchema } from "$lib/schemas/common";
  * Parámetros para listar proyectos con filtrado opcional y paginación
  */
 export const ListProjectsSchema = z.object({
-  team_uuid: uuidSchema
+  team_uuid: coolifyIdSchema
     .optional()
     .describe("Filtrar proyectos por equipo (UUID)"),
   limit: z
@@ -36,7 +36,7 @@ export const ListProjectsSchema = z.object({
  * Parámetros para obtener un proyecto específico
  */
 export const GetProjectSchema = z.object({
-  uuid: z.string().uuid("UUID inválido").describe("UUID del proyecto"),
+  uuid: coolifyIdSchema.describe("UUID del proyecto"),
 });
 
 /**
@@ -59,7 +59,7 @@ export const CreateProjectSchema = z.object({
  * Parámetros para actualizar un proyecto
  */
 export const UpdateProjectSchema = z.object({
-  uuid: z.string().uuid("UUID inválido").describe("UUID del proyecto"),
+  uuid: coolifyIdSchema.describe("UUID del proyecto"),
   name: z
     .string()
     .min(1)
@@ -77,14 +77,14 @@ export const UpdateProjectSchema = z.object({
  * Parámetros para eliminar un proyecto
  */
 export const DeleteProjectSchema = z.object({
-  uuid: z.string().uuid("UUID inválido").describe("UUID del proyecto a eliminar"),
+  uuid: coolifyIdSchema.describe("UUID del proyecto a eliminar"),
 });
 
 /**
  * Parámetros para listar entornos de un proyecto
  */
 export const ListProjectEnvironmentsSchema = z.object({
-  uuid: z.string().uuid("UUID inválido").describe("UUID del proyecto"),
+  uuid: coolifyIdSchema.describe("UUID del proyecto"),
 });
 
 // === Esquemas de Salida ===

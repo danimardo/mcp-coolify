@@ -1,115 +1,142 @@
-# MCP Coolify Server 🚀
+# MCP Coolify Server
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.0-purple.svg)](https://modelcontextprotocol.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**MCP Coolify Server** es un servidor [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) que expone la API de **Coolify v4** como ~107 herramientas programables para agentes de IA (Claude Code, etc.).
+Servidor [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) que expone la **API de Coolify v4** como ~107 herramientas para agentes de IA como Claude Code.
 
-Permite que agentes de inteligencia artificial consulten, monitoreen y administren infraestructura Coolify de forma segura, auditable y controlada.
-
----
-
-## ✨ Características Principales
-
-- **🛡️ Seguridad de Primer Nivel**: Modo READ_ONLY, confirmación de operaciones críticas, redacción automática de secretos en logs
-- **📊 Auditoría Completa**: Logging estructurado con eventos estables, trazabilidad via requestId, durationMs en operaciones
-- **⚡ Resilencia**: Retry automático con exponential backoff, respeta header Retry-After (429), valida tokens al bootstrap
-- **🔍 Observabilidad**: Logs persistentes en `.logs/app.jsonl` (JSON Lines), timestamps con timezone correcto
-- **✅ Type-Safe**: TypeScript 5.0 strict mode, Zod validation para todos los inputs, cero `any` types
-- **🔧 ~107 Herramientas** en 13 categorías:
-  - Default (info, versión, health)
-  - Teams, Projects, Applications, Deployments
-  - Databases, Services, Servers, Resources
-  - Private Keys, GitHub Apps, Cloud Tokens, Hetzner
+Con este MCP puedes hablarle a Claude en lenguaje natural y pedirle que gestione tu infraestructura Coolify: listar aplicaciones, consultar logs, lanzar deployments, reiniciar servicios, gestionar bases de datos... todo sin salir del chat.
 
 ---
 
-## 🚀 Inicio Rápido
+## Contenido
 
-### Requisitos Previos
+- [¿Qué necesito?](#-qué-necesito)
+- [Instalación](#-instalación)
+  - [Windows](#windows)
+  - [Linux / macOS](#linux--macos)
+- [Configurar el archivo .env](#-configurar-el-archivo-env)
+- [Integrar con Claude Code](#-integrar-con-claude-code)
+  - [Windows](#windows-1)
+  - [Linux / macOS](#linux--macos-1)
+  - [Cómo usarlo](#cómo-usarlo)
+- [Herramientas disponibles](#-herramientas-disponibles-107)
+- [Seguridad y confirmaciones](#-seguridad-y-confirmaciones)
+- [Modo READ_ONLY](#-modo-read_only)
+- [Logging y diagnóstico](#-logging-y-diagnóstico)
+- [Desarrollo](#-desarrollo)
+- [Resolución de problemas](#-resolución-de-problemas)
 
-- **Node.js**: 18.x o superior (recomendado: 20.x LTS)
-- **npm/pnpm**: 9.0+
-- **Coolify API Token**: Generar en panel Coolify → Settings → API
-- **URL de Coolify**: Base URL de tu instancia Coolify (ej: `https://coolify.midominio.com/api/v1`)
+---
 
-### Instalación
+## ¿Qué necesito?
 
-```bash
-# Clonar repositorio
+- **Node.js 18+** — [descargar](https://nodejs.org/en/download)
+- **npm 9+** — incluido con Node.js
+- **Claude Code** — CLI o app de escritorio
+- **Una instancia de Coolify** con acceso a la API
+- **Token de API de Coolify** — obtener en tu panel Coolify → Settings → API Tokens
+
+---
+
+## Instalación
+
+### Windows
+
+Abre **PowerShell** (o Windows Terminal) y ejecuta:
+
+```powershell
+# Clonar el repositorio
 git clone https://github.com/tu-usuario/mcp-coolify.git
 cd mcp-coolify
 
 # Instalar dependencias
 npm install
 
-# Copiar archivo de configuración
-cp .env.example .env
+# Copiar la plantilla de configuración
+copy .env.example .env
 
-# Editar .env con tus credenciales
-nano .env
-```
-
-### Configuración (.env)
-
-```bash
-# REQUERIDOS
-COOLIFY_BASE_URL=https://coolify.midominio.com/api/v1
-COOLIFY_TOKEN=tr_xxxxxxxxxxxxxxxxxxxx
-
-# OPCIONALES (defaults mostrados)
-NODE_ENV=development
-PORT=3000
-LOG_LEVEL=info
-LOG_DIR=.logs
-LOG_TO_FILES=true
-LOG_TIMEZONE=Europe/Madrid
-
-READ_ONLY=false                          # true = bloquea POST/PATCH/DELETE
-REQUEST_TIMEOUT=30000                    # ms
-MAX_RETRIES=3
-VALIDATE_TOKEN_ON_STARTUP=true           # Validar token al iniciar
-```
-
-### Ejecutar Servidor
-
-```bash
-# Desarrollo (con reloading)
-npm run dev
-
-# Producción
+# Compilar (genera la carpeta dist/)
 npm run build
-npm start
+```
 
-# Tests
-npm test
-npm run test:coverage
+Edita el archivo `.env` con tu editor favorito (VS Code, Bloc de notas, etc.):
 
-# Linting
-npm run lint
-npm run lint:fix
+```powershell
+# Con VS Code:
+code .env
+
+# Con Bloc de notas:
+notepad .env
+```
+
+### Linux / macOS
+
+```bash
+git clone https://github.com/tu-usuario/mcp-coolify.git
+cd mcp-coolify
+
+npm install
+
+cp .env.example .env
+nano .env   # o el editor que prefieras
+
+npm run build
 ```
 
 ---
 
-## 🔌 Uso con Claude Code
+## Configurar el archivo .env
 
-Este MCP está diseñado para usarse con **Claude Code CLI** o **Claude Code Web**.
+Abre el `.env` que acabas de crear y rellena al menos los dos campos obligatorios:
 
-### Conectar a Claude Code
+```bash
+# OBLIGATORIOS
+COOLIFY_BASE_URL=https://coolify.midominio.com/api/v1
+COOLIFY_TOKEN=tr_xxxxxxxxxxxxxxxxxxxx
+```
 
-**Opción 1: Via stdio (recomendado)**
+El resto son opcionales y ya tienen valores por defecto razonables:
 
-En tu `~/.claude/mcp.json`:
+| Variable | Default | Descripción |
+|---|---|---|
+| `NODE_ENV` | `development` | Entorno de ejecución |
+| `LOG_LEVEL` | `info` | Verbosidad: `trace`, `debug`, `info`, `warn`, `error`, `fatal` |
+| `LOG_DIR` | `.logs` | Carpeta donde se escriben los logs |
+| `LOG_TO_FILES` | `true` | Escribe logs a disco (`.logs/app.log` y `.logs/app.jsonl`) |
+| `LOG_TIMEZONE` | `Europe/Madrid` | Timezone para timestamps legibles |
+| `READ_ONLY` | `false` | `true` bloquea toda operación de escritura |
+| `COOLIFY_REQUEST_TIMEOUT` | `30000` | Timeout por request (ms) |
+| `COOLIFY_MAX_RETRIES` | `3` | Reintentos ante errores transitorios |
+| `VALIDATE_TOKEN_ON_STARTUP` | `true` | Valida el token antes de arrancar |
+
+> **Cómo obtener el token de Coolify**: entra en tu panel Coolify, ve a **Settings → API Tokens**, crea uno nuevo y cópialo. Siempre empieza por `tr_`.
+
+---
+
+## Integrar con Claude Code
+
+El MCP se conecta a Claude Code mediante **stdio**: Claude Code lanza el proceso del servidor y se comunica con él por entrada/salida estándar. No necesitas levantar ningún servidor manualmente.
+
+La configuración se guarda en un archivo JSON. Puedes configurarlo a nivel global (para todos tus proyectos) o a nivel de proyecto.
+
+### Windows
+
+El archivo de configuración global está en:
+```
+C:\Users\<tu-usuario>\.claude\mcp.json
+```
+
+Si no existe, créalo. El contenido debe ser:
 
 ```json
 {
   "mcpServers": {
     "coolify": {
       "command": "node",
-      "args": ["/path/to/mcp-coolify/dist/server/index.js"],
+      "args": ["C:\\Users\\<tu-usuario>\\proyectos\\mcp-coolify\\dist\\server\\index.js"],
       "env": {
         "COOLIFY_BASE_URL": "https://coolify.midominio.com/api/v1",
         "COOLIFY_TOKEN": "tr_xxxxxxxxxxxxxxxxxxxx"
@@ -119,157 +146,193 @@ En tu `~/.claude/mcp.json`:
 }
 ```
 
-Luego en Claude Code:
+> **Importante en Windows**: usa doble barra invertida (`\\`) en las rutas dentro del JSON.
+
+Para saber la ruta exacta del proyecto, ejecuta en PowerShell desde la carpeta del repositorio:
+```powershell
+(Get-Item .).FullName
+# Ejemplo: C:\Users\daniel\proyectos\mcp-coolify
 ```
-@coolify list_applications
-@coolify get_application --uuid <app-uuid>
-@coolify restart_application --uuid <app-uuid>
+
+Luego añade `\\dist\\server\\index.js` al final.
+
+#### Alternativa: configuración por proyecto
+
+Crea un archivo `.mcp.json` en la raíz de tu proyecto de trabajo (no del repositorio de este MCP). Claude Code lo detectará automáticamente:
+
+```json
+{
+  "mcpServers": {
+    "coolify": {
+      "command": "node",
+      "args": ["C:\\Users\\<tu-usuario>\\proyectos\\mcp-coolify\\dist\\server\\index.js"],
+      "env": {
+        "COOLIFY_BASE_URL": "https://coolify.midominio.com/api/v1",
+        "COOLIFY_TOKEN": "tr_xxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+### Linux / macOS
+
+El archivo de configuración global está en:
+```
+~/.claude/mcp.json
+```
+
+```json
+{
+  "mcpServers": {
+    "coolify": {
+      "command": "node",
+      "args": ["/home/usuario/proyectos/mcp-coolify/dist/server/index.js"],
+      "env": {
+        "COOLIFY_BASE_URL": "https://coolify.midominio.com/api/v1",
+        "COOLIFY_TOKEN": "tr_xxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+Para obtener la ruta del proyecto:
+```bash
+cd mcp-coolify && pwd
+# Ejemplo: /home/usuario/proyectos/mcp-coolify
+```
+
+### Cómo usarlo
+
+Una vez configurado, **reinicia Claude Code** (o recarga la configuración MCP). Las herramientas del servidor Coolify estarán disponibles automáticamente.
+
+No hace falta ninguna sintaxis especial. Habla con Claude de forma natural:
+
+```
+¿Qué aplicaciones tengo en Coolify?
+
+Reinicia la aplicación "mi-blog" en Coolify.
+
+Muéstrame los últimos logs de la aplicación con UUID abc-123.
+
+¿Cuántos proyectos tengo? ¿Cuál es el estado de los servidores?
+
+Lanza un nuevo deployment de la aplicación "api-produccion".
+```
+
+Claude detectará automáticamente qué herramientas necesita y las invocará. Para operaciones destructivas (borrar, detener, etc.) el MCP pedirá confirmación explícita antes de ejecutar.
+
+#### Verificar que el MCP está funcionando
+
+En Claude Code, puedes pedirle directamente:
+```
+Usa la herramienta validate_token de coolify para verificar que la conexión está funcionando.
+```
+
+O simplemente:
+```
+¿Está la conexión a Coolify funcionando?
 ```
 
 ---
 
-## 📋 Herramientas Disponibles (Fase 1 MVP)
+## Herramientas disponibles (~107)
 
-### Default (4 herramientas)
-- `get_version` — Obtener versión de Coolify
-- `get_health` — Comprobar estado del servidor
-- `validate_token` — Validar token de API
-- `test_connection` — Probar conexión a API
+El servidor expone herramientas organizadas en 13 categorías:
 
-### Teams (4 herramientas)
-- `get_current_team` — Obtener equipo actual
-- `list_all_teams` — Listar todos los equipos
-- `get_team_by_id` — Obtener equipo por ID
-- `get_team_members` — Obtener miembros del equipo
+| Categoría | Herramientas | Ejemplos |
+|---|---|---|
+| **Default** | 4 | `get_info`, `get_health`, `validate_token`, `test_connection` |
+| **Teams** | 4 | `get_current_team`, `list_all_teams`, `get_team_by_id`, `get_current_team_members` |
+| **Projects** | 5 | `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project` |
+| **Environments** | 4 | `list_environments`, `get_environment`, `create_environment`, `delete_environment` |
+| **Applications** | 11 | `list_applications`, `get_application`, `get_application_logs`, `start_application`, `stop_application`, `restart_application`, `trigger_deployment`… |
+| **Deployments** | 3 | `list_deployments`, `get_deployment`, `cancel_deployment` |
+| **Databases** | 15 | `list_databases`, `get_database`, `create_database_postgres`, `create_database_mysql`, `create_database_redis`… |
+| **Services** | 6 | `list_services`, `get_service`, `create_service`, `start_service`, `stop_service`, `restart_service` |
+| **Servers** | 8 | `list_servers`, `get_server`, `create_server`, `validate_server`, `get_server_resources`, `get_server_domains`… |
+| **Private Keys** | 4 | `list_private_keys`, `get_private_key`, `create_private_key`, `delete_private_key` |
+| **GitHub Apps** | 4 | `list_github_apps`, `create_github_app`, `update_github_app`, `delete_github_app` |
+| **Cloud Tokens** | 6 | `list_cloud_tokens`, `get_cloud_token`, `create_cloud_token`, `validate_cloud_token`… |
+| **Hetzner** | 3 | `list_hetzner_locations`, `list_hetzner_images`, `list_server_types` |
 
-### Projects (3 herramientas)
-- `list_projects` — Listar todos los proyectos
-- `get_project` — Obtener proyecto por ID
-- `create_project` — Crear nuevo proyecto
-
-### Applications (6 herramientas)
-- `list_applications` — Listar aplicaciones
-- `get_application` — Obtener aplicación
-- `get_application_logs` — Obtener logs
-- `start_application` — Iniciar aplicación
-- `stop_application` — Detener aplicación
-- `restart_application` — Reiniciar aplicación
-
-### Deployments (4 herramientas)
-- `list_deployments` — Listar deployments
-- `get_deployment` — Obtener deployment
-- `trigger_deployment` — Disparar deployment
-- `cancel_deployment` — Cancelar deployment
-
-### Servers (4 herramientas)
-- `list_servers` — Listar servidores
-- `get_server` — Obtener servidor
-- `validate_server` — Validar servidor
-- `get_server_resources` — Obtener recursos
-
-**[Ver especificación completa](specs/001-mcp-coolify/spec.md) para todas las 107 herramientas y fases posteriores.**
+Ver [especificación completa](specs/001-mcp-coolify/spec.md) para parámetros y comportamiento de cada herramienta.
 
 ---
 
-## 🔐 Seguridad & Operaciones Críticas
+## Seguridad y confirmaciones
 
-### Operaciones Que Requieren Confirmación
+Determinadas operaciones son destructivas o tienen coste económico. El MCP las bloquea por defecto y exige una confirmación explícita en dos pasos antes de ejecutarlas.
 
-Estas 19 operaciones requieren confirmación explícita del usuario:
+### Operaciones que requieren confirmación
 
-**Deletions (irreversibles)**:
+**Eliminaciones irreversibles:**
 - `delete_project`, `delete_application`, `delete_environment`
 - `delete_database`, `delete_service`, `delete_server`
 - `delete_private_key`, `delete_github_app`, `delete_cloud_token`
 - `delete_database_backup`, `delete_backup_execution`
 
-**Destructive Actions (detenimiento)**:
-- `cancel_deployment`, `stop_application`
-- `stop_database`, `stop_service`
+**Acciones de parada:**
+- `cancel_deployment`, `stop_application`, `stop_database`, `stop_service`
 
-**Production/Cost**:
-- `trigger_deployment` (en main/production)
+**Producción / coste:**
+- `trigger_deployment` (en ramas main/production)
 - `create_hetzner_server`
 
-**Secrets**:
+**Gestión de secretos:**
 - `create_private_key`, `create_cloud_token`, `create_github_app`
-- `create_application_environment_variable` (con secreto)
 
-### Flujo de Confirmación Explícita
-
-Para operaciones críticas, el MCP implementa un flujo de confirmación en 4 pasos:
+### Flujo de confirmación
 
 ```
-1. Agente invoca operación crítica
+1. Pides a Claude que ejecute una operación crítica
    ↓
-2. Servidor devuelve:
+2. El MCP responde con un token de confirmación:
    {
-     requiresConfirmation: true,
-     operationId: "550e8400-...",
-     confirmationToken: "a1b2c3d4-...",
-     reason: "Destructive operation - application will be permanently deleted"
+     "requiresConfirmation": true,
+     "operationId": "op-550e8400-...",
+     "confirmationToken": "a1b2c3d4-...",
+     "reason": "Esta operación eliminará la aplicación permanentemente"
    }
    ↓
-3. Agente invoca confirm_operation(operationId, confirmationToken)
+3. Claude te muestra el token y espera tu OK
    ↓
-4. Agente reinvoca la operación original (se ejecuta sin pedir confirmación nuevamente)
+4. Tú confirmas ("sí, adelante" o similar)
+   ↓
+5. Claude invoca confirm_operation con el token
+   ↓
+6. La operación se ejecuta
 ```
 
-**Características**:
-- Tokens expiran después de 5 minutos de inactividad
-- Cada token es un UUID aleatorio (imposible de predecir)
-- Confirmaciones se marcan con event `operation.confirmed` en logs
-- Operaciones confirmadas quedan vigentes 30 segundos para reinvocación
+Los tokens de confirmación expiran a los **5 minutos**. Si no confirmas a tiempo, el proceso empieza de nuevo.
 
-**Ejemplo en Claude Code**:
-```
-@coolify restart_application --uuid app-123
+---
 
-→ Respuesta: {
-    requiresConfirmation: true,
-    operationId: "op-abc123...",
-    confirmationToken: "token-xyz789..."
-}
+## Modo READ_ONLY
 
-@coolify confirm_operation --operationId op-abc123... --token token-xyz789...
-
-→ Respuesta: {
-    success: true,
-    message: "Confirmación aceptada. La operación se ejecutará."
-}
-
-@coolify restart_application --uuid app-123
-
-→ Respuesta: {
-    uuid: "app-123",
-    action: "restart",
-    status: "scheduled"
-}
-```
-
-### Modo READ_ONLY
-
-Para testing y validación sin side effects:
+Para explorar tu infraestructura sin riesgo de modificar nada, activa el modo de solo lectura:
 
 ```bash
+# En .env:
+READ_ONLY=true
+
+# O al lanzar:
 READ_ONLY=true npm run dev
 ```
 
 En este modo:
-- ✅ Todas las operaciones GET funcionan normalmente
-- ❌ POST, PATCH, DELETE, start/stop/restart bloqueados
-- 📝 Evento `read_only.blocked_operation` registrado
-- 💡 Error response incluye hint para desactivar READ_ONLY
+- Todas las consultas GET funcionan con normalidad
+- Las operaciones de escritura (POST, PATCH, DELETE) devuelven error 403
+- Cada intento bloqueado queda registrado como evento `read_only.blocked_operation`
 
 ---
 
-## 📊 Logging & Auditoría
+## Logging y diagnóstico
 
-### Logs en Desarrollo
+En desarrollo, el servidor escribe logs en dos formatos en la carpeta `.logs/`:
 
-El servidor escribe logs en dos formatos:
-
-**`.logs/app.log`** — Human-readable:
+**`.logs/app.log`** — legible para humanos:
 ```
 12/05/2026 10:40:50  [INFO]  mcp.tool.completed
   requestId: "550e8400-e29b-41d4-a716-446655440000"
@@ -277,221 +340,194 @@ El servidor escribe logs en dos formatos:
   durationMs: 543
 ```
 
-**`.logs/app.jsonl`** — JSON Lines (una línea por evento):
+**`.logs/app.jsonl`** — JSON Lines, una línea por evento (útil para grep/jq):
 ```json
-{"timestamp":"2026-05-12T10:40:50.000Z","localTime":"12/05/2026 10:40:50","timezone":"Europe/Madrid","level":"info","eventName":"mcp.tool.completed","context":{"requestId":"550e8400-e29b-41d4-a716-446655440000","tool":"list_applications","durationMs":543}}
+{"timestamp":"2026-05-12T10:40:50.000Z","level":"info","eventName":"mcp.tool.completed","context":{"tool":"list_applications","durationMs":543}}
 ```
 
-### Niveles de Log
+Ambos archivos se truncan en cada reinicio y están en `.gitignore`.
+
+### Ver logs en tiempo real
+
+```powershell
+# PowerShell (Windows)
+Get-Content .logs\app.log -Wait
+
+# bash (Linux / macOS / Git Bash en Windows)
+tail -f .logs/app.log
+```
+
+### Aumentar verbosidad para depurar
 
 ```bash
-LOG_LEVEL=trace     # Detalles extremadamente verbosos
-LOG_LEVEL=debug     # Información de diagnóstico
-LOG_LEVEL=info      # Eventos operacionales (default)
-LOG_LEVEL=warn      # Situaciones anómalas (reintentos, confirmación fallida)
-LOG_LEVEL=error     # Fallos reales (4xx, 401, 403)
-LOG_LEVEL=fatal     # Errores irrecuperables (bootstrap falló)
+LOG_LEVEL=debug npm run dev
 ```
 
-### Eventos Clave
+### Eventos clave
 
-| Evento | Nivel | Cuándo |
-|--------|-------|--------|
-| `app.bootstrap.started` | info | Servidor iniciando |
-| `app.bootstrap.token_validated` | info | Token validado |
-| `mcp.tool.invoked` | debug | Herramienta solicitada |
-| `mcp.tool.completed` | info | Herramienta completada |
-| `mcp.tool.failed` | warn | Herramienta falló |
-| `coolify.request.started` | debug | Request a API iniciado |
-| `coolify.request.retry` | warn | Reintentando (429, 5xx) |
-| `coolify.request.failed` | error | Request falló |
-| `coolify.auth.failed` | error | Token inválido (401) |
-| `operation.confirmation.requested` | info | Confirmación requerida |
-| `operation.confirmed` | info | Operación confirmada |
-| `read_only.blocked_operation` | warn | Bloqueado en modo READ_ONLY |
+| Evento | Cuándo |
+|---|---|
+| `app.bootstrap.started` | El servidor arranca |
+| `app.bootstrap.token_validated` | Token de Coolify verificado |
+| `app.bootstrap.failed` | El servidor no pudo arrancar |
+| `mcp.tool.invoked` | Claude solicita una herramienta |
+| `mcp.tool.completed` | Herramienta ejecutada con éxito |
+| `mcp.tool.failed` | La herramienta devolvió error |
+| `coolify.request.retry` | Reintentando (error 429 o 5xx) |
+| `coolify.request.failed` | El request a Coolify falló |
+| `read_only.blocked_operation` | Operación bloqueada en modo READ_ONLY |
+| `operation.confirmation.requested` | Esperando confirmación del usuario |
+| `operation.confirmed` | Operación confirmada y ejecutada |
 
-**Redacción Automática**: Todos los tokens, passwords, API keys se redactan automáticamente como `[REDACTED]`.
+Los tokens, passwords y API keys se redactan automáticamente como `[REDACTED]` en todos los logs.
 
 ---
 
-## 🧪 Testing
+## Desarrollo
+
+### Comandos útiles
 
 ```bash
-# Ejecutar todos los tests
+# Servidor en modo desarrollo (recarga automática de código)
+npm run dev
+
+# Compilar TypeScript a dist/
+npm run build
+
+# Tests (116 tests)
 npm test
+npm run test:coverage
 
-# Tests en modo watch
-npm test -- --watch
+# Linting y verificación de tipos
+npm run lint
+npm run type-check
 
-# Con cobertura
-npm test:coverage
-
-# Un archivo específico
-npm test src/lib/config.test.ts
+# Todo junto (igual que el pre-commit hook)
+npm run precommit
 ```
 
-**Estado Actual**: ✅ 101/101 tests passing
-
-**Cobertura Mínima**: 
-- Validación (Zod): 90%
-- Logging: 85%
-- Bootstrap: 90%
-- Error handling: 85%
-- Reintentos: 80%
-- Redacción de secrets: 95%
-- READ_ONLY: 90%
-- Confirmación: 80%
-
----
-
-## 🏗️ Arquitectura
-
-### Estructura de Archivos
+### Estructura del proyecto
 
 ```
 src/
 ├── lib/
-│   ├── logging/              # Sistema de logging
-│   │   ├── logger.server.ts  # Pino + file transports
-│   │   ├── sanitize.ts       # Redacción de secretos
-│   │   └── types.ts          # Contrato de logger
-│   │
-│   ├── mcp/                  # Protocolo MCP
-│   │   ├── registry.ts       # Registro de herramientas
-│   │   ├── types.ts          # Tipos MCP
-│   │   └── invoker.ts        # Handler de invocación
-│   │
-│   ├── coolify/              # Cliente de Coolify API
-│   │   ├── client.ts         # HTTP con retry/timeout
-│   │   ├── errors.ts         # Manejo de errores
-│   │   └── types.ts          # Tipos de API
-│   │
-│   ├── config.ts             # Configuración centralizada
-│   ├── http-client.ts        # Cliente HTTP Axios
-│   ├── confirmation/         # Flow de confirmación
-│   ├── safety/               # Guardia READ_ONLY
-│   ├── errors/               # Tipos de error
-│   └── schemas/              # Zod schemas
+│   ├── confirmation/     # Flujo de confirmación de operaciones críticas
+│   ├── coolify/          # Cliente HTTP para Coolify API (retry, timeout)
+│   ├── logging/          # Sistema de logging (tipos, sanitización)
+│   ├── safety/           # Guardia READ_ONLY
+│   ├── schemas/          # Schemas Zod compartidos
+│   └── config.ts         # Configuración centralizada
 │
 ├── server/
-│   ├── index.ts              # Entry point
-│   ├── config.ts             # Bootstrap
-│   └── logging/              # Inicialización logger
+│   ├── index.ts          # Entry point del servidor MCP
+│   └── logging/          # Inicialización del logger (Pino)
 │
-├── tools/                    # 13 categorías, ~107 herramientas
-│   ├── default/
-│   ├── teams/
-│   ├── projects/
-│   ├── applications/
-│   └── ... (10 más)
-│
-└── main.ts
+└── tools/                # ~107 herramientas en 13 carpetas
+    ├── default/
+    ├── applications/
+    ├── databases/
+    └── ...
 
-tests/
-├── unit/                     # Tests unitarios
-├── integration/              # Tests de integración
-└── mocks/                    # Mocks de API
-
-.logs/                        # Logs (gitignored)
-├── app.log                   # Human-readable
-└── app.jsonl                 # JSON Lines
-```
-
-### Request Flow
-
-```
-1. Agente → MCP solicita herramienta X
-2. Handler valida parámetros con Zod
-3. Si inválido → error 400 + log
-4. Verifica READ_ONLY flag
-5. Si bloqueado → error 403 + log
-6. ¿Requiere confirmación?
-7. Si crítico → espera confirmación del agente
-8. Invoca Coolify API
-9. Maneja reintentos (exponential backoff)
-10. Valida respuesta con Zod
-11. Logea evento + responde a agente
+.logs/                    # Logs de desarrollo (gitignored)
+specs/001-mcp-coolify/    # Especificación técnica completa
 ```
 
 ---
 
-## 🔧 Desarrollo
+## Resolución de problemas
 
-### Pre-commit Hooks
+### El servidor no arranca
+
+```powershell
+# 1. Comprueba que el .env tiene los datos correctos
+Get-Content .env
+
+# 2. Verifica que el build existe
+Get-ChildItem dist\server\index.js
+
+# 3. Si no existe, compila:
+npm run build
+
+# 4. Mira los logs
+Get-Content .logs\app.log
+```
+
+Errores frecuentes:
+
+| Error en logs | Causa | Solución |
+|---|---|---|
+| `app.bootstrap.failed` + token | Token inválido o caducado | Genera un nuevo token en Coolify |
+| `app.bootstrap.failed` + URL | URL incorrecta | Verifica que termina en `/api/v1` |
+| `ENOENT dist/server/index.js` | No has compilado | Ejecuta `npm run build` |
+| `Cannot find module` | Dependencias no instaladas | Ejecuta `npm install` |
+
+### Claude Code no detecta el MCP
+
+1. Verifica que el archivo de configuración está en la ruta correcta:
+   - Windows: `C:\Users\<usuario>\.claude\mcp.json`
+   - Linux/Mac: `~/.claude/mcp.json`
+
+2. Comprueba que el JSON es válido (sin comas sobrantes, comillas correctas).
+
+3. Asegúrate de que la ruta en `args` usa doble barra invertida en Windows (`\\`).
+
+4. Reinicia Claude Code después de modificar la configuración.
+
+5. Prueba el servidor manualmente para ver si arranca:
+   ```powershell
+   node C:\ruta\al\mcp-coolify\dist\server\index.js
+   ```
+   Si arranca sin errores y luego se queda esperando, es correcto (espera input de stdio).
+
+### Las herramientas fallan silenciosamente
 
 ```bash
-npm run precommit   # Corre lint, type-check, tests
+# Activa debug para ver los detalles de cada request
+LOG_LEVEL=debug npm run dev
 ```
 
-### Build
+Luego busca el `requestId` de la operación que falló y filtra por él:
 
-```bash
-npm run build       # TypeScript → dist/
-npm run dist:watch  # Build en modo watch
+```powershell
+# PowerShell
+Select-String "req-abc123" .logs\app.log
+
+# bash
+grep "req-abc123" .logs/app.log
 ```
 
-### Environment Variables
+---
 
-Ver `.env.example` para todas las opciones.
+## Documentación adicional
+
+- [Especificación técnica](specs/001-mcp-coolify/spec.md) — Arquitectura, protocolo MCP, esquemas
+- [Eventos de logging](logging-events.md) — Catálogo completo de 50+ eventos
+- [API Coolify v4](docs/manual_api_coolify_programador.md) — Referencia de endpoints
+- [Plan de implementación](specs/001-mcp-coolify/plan.md) — Decisiones de arquitectura
 
 ---
 
-## 📚 Documentación Adicional
+## Contribuir
 
-- **[Especificación Técnica](specs/001-mcp-coolify/spec.md)** — Arquitectura, protocolo MCP, logging
-- **[Constitución](CLAUDE.md)** — Principios, ADRs, governance
-- **[Eventos de Logging](logging-events.md)** — Catálogo de 50+ eventos
-- **[API Coolify v4](docs/manual_api_coolify_programador.md)** — Referencia de endpoints
-- **[Implementation Review](IMPLEMENTATION_REVIEW.md)** — Análisis de calidad post-revisión
+1. Haz fork del repositorio
+2. Crea una rama: `git checkout -b feature/mi-mejora`
+3. Haz tus cambios
+4. Asegúrate de que todo pasa: `npm run precommit`
+5. Haz commit y abre un Pull Request
 
----
-
-## 🤝 Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/amazing`)
-3. Commit los cambios (`git commit -am 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing`)
-5. Abre un Pull Request
-
-**Requisitos para PR**:
-- ✅ Todos los tests pasan (`npm test`)
-- ✅ Linting limpio (`npm run lint`)
-- ✅ TypeScript strict (`npm run type-check`)
-- ✅ Nuevos tests para features nuevas
-- ✅ Documentación actualizada
+**Requisitos para que se acepte un PR:**
+- Todos los tests pasan (`npm test`)
+- Sin errores de linting (`npm run lint`)
+- Sin errores de tipos (`npm run type-check`)
+- Tests nuevos para funcionalidad nueva
+- Documentación actualizada si el comportamiento observable cambia
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 MIT — ver [LICENSE](LICENSE) para detalles.
 
 ---
 
-## 🚨 Soporte & Problemas
-
-- 📖 Lee la [documentación de Coolify v4](https://docs.coolify.io/)
-- 🐛 Reporta bugs en [GitHub Issues](https://github.com/tu-usuario/mcp-coolify/issues)
-- 💬 Discusiones en [GitHub Discussions](https://github.com/tu-usuario/mcp-coolify/discussions)
-
----
-
-## 🔑 Características Planificadas
-
-- [ ] Herramientas Fase 2 (Databases read, Services read)
-- [ ] Herramientas Fase 3 (Full write access, todos los 107 tools)
-- [ ] Webhook support para eventos Coolify
-- [ ] Caché en memoria para operaciones frecuentes
-- [ ] Métricas Prometheus para observabilidad
-- [ ] Dashboard de auditoría
-- [ ] Integración con webhooks de GitHub
-- [ ] Soporte para múltiples instancias de Coolify
-
----
-
-**Hecho con ❤️ para DevOps engineers y AI agents.**
-
-*Última actualización: 2026-05-12*
+*v1.0.0-rc.1 — Última actualización: 2026-05-12*

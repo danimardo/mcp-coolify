@@ -14,6 +14,19 @@ export const uuidSchema = z
   .describe("UUID v4 identifier");
 
 /**
+ * Coolify resource identifier validator.
+ * Coolify uses its own alphanumeric IDs (e.g. "b4wskogsggco0wk8kc4wscwk")
+ * rather than standard UUIDs. Accepts both formats.
+ */
+export const coolifyIdSchema = z
+  .string()
+  .regex(
+    /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-z]{8,40})$/,
+    "Invalid Coolify resource ID"
+  )
+  .describe("Coolify resource identifier");
+
+/**
  * URL validator
  */
 export const urlSchema = z

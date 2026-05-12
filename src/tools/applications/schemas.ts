@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import { uuidSchema, isoDateSchema } from "$lib/schemas/common";
+import { coolifyIdSchema, uuidSchema, isoDateSchema } from "$lib/schemas/common";
 
 // ============================================================
 // Esquemas de Entrada (Parámetros)
@@ -16,7 +16,7 @@ import { uuidSchema, isoDateSchema } from "$lib/schemas/common";
  * Parámetros para listar aplicaciones
  */
 export const ListApplicationsSchema = z.object({
-  project_uuid: uuidSchema.optional().describe("Filtrar por proyecto"),
+  project_uuid: coolifyIdSchema.optional().describe("Filtrar por proyecto"),
   environment_name: z.string().optional().describe("Filtrar por entorno"),
   limit: z
     .number()
@@ -39,7 +39,7 @@ export type ListApplicationsParams = z.infer<typeof ListApplicationsSchema>;
  * Parámetros para obtener una aplicación
  */
 export const GetApplicationSchema = z.object({
-  uuid: uuidSchema.describe("UUID de la aplicación"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación"),
 });
 
 export type GetApplicationParams = z.infer<typeof GetApplicationSchema>;
@@ -48,7 +48,7 @@ export type GetApplicationParams = z.infer<typeof GetApplicationSchema>;
  * Parámetros para obtener logs de una aplicación
  */
 export const GetApplicationLogsSchema = z.object({
-  uuid: uuidSchema.describe("UUID de la aplicación"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación"),
   lines: z
     .number()
     .int()
@@ -64,7 +64,7 @@ export type GetApplicationLogsParams = z.infer<typeof GetApplicationLogsSchema>;
  * Parámetros para iniciar una aplicación
  */
 export const StartApplicationSchema = z.object({
-  uuid: uuidSchema.describe("UUID de la aplicación"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación"),
   force: z
     .boolean()
     .default(false)
@@ -77,7 +77,7 @@ export type StartApplicationParams = z.infer<typeof StartApplicationSchema>;
  * Parámetros para detener una aplicación
  */
 export const StopApplicationSchema = z.object({
-  uuid: uuidSchema.describe("UUID de la aplicación"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación"),
   force: z
     .boolean()
     .default(false)
@@ -90,7 +90,7 @@ export type StopApplicationParams = z.infer<typeof StopApplicationSchema>;
  * Parámetros para reiniciar una aplicación
  */
 export const RestartApplicationSchema = z.object({
-  uuid: uuidSchema.describe("UUID de la aplicación"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación"),
   force: z
     .boolean()
     .default(false)

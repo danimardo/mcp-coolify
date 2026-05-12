@@ -4,25 +4,25 @@
  */
 
 import { z } from "zod";
-import { uuidSchema } from "$lib/schemas/common";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ============================================================
 // PARÁMETROS
 // ============================================================
 
 export const ListServicesSchema = z.object({
-  project_uuid: uuidSchema.optional().describe("Filtrar por proyecto"),
+  project_uuid: coolifyIdSchema.optional().describe("Filtrar por proyecto"),
   environment_name: z.string().optional().describe("Filtrar por ambiente"),
   limit: z.number().int().min(1).max(100).default(50).describe("Elementos por página"),
   skip: z.number().int().min(0).default(0).describe("Offset"),
 }).strict();
 
 export const GetServiceSchema = z.object({
-  uuid: z.string().uuid("UUID válido requerido").describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
 }).strict();
 
 export const CreateServiceSchema = z.object({
-  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  project_uuid: coolifyIdSchema.describe("UUID del proyecto"),
   environment_name: z.string().min(1).describe("Nombre del ambiente"),
   name: z.string().min(1).describe("Nombre del servicio"),
   image: z.string().min(1).describe("Imagen Docker"),
@@ -30,51 +30,51 @@ export const CreateServiceSchema = z.object({
 }).strict();
 
 export const UpdateServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   name: z.string().min(1).optional().describe("Nuevo nombre"),
   image: z.string().min(1).optional().describe("Nueva imagen"),
   description: z.string().optional().describe("Nueva descripción"),
 }).strict();
 
 export const DeleteServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
 }).strict();
 
 export const StartServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
 }).strict();
 
 export const StopServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
 }).strict();
 
 export const RestartServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
 }).strict();
 
 export const GetServiceLogsSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   lines: z.number().int().min(1).max(1000).default(100).describe("Número de líneas"),
   follow: z.boolean().optional().describe("Seguir logs en tiempo real"),
 }).strict();
 
 export const ScaleServiceSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   replicas: z.number().int().min(1).max(100).describe("Número de réplicas"),
 }).strict();
 
 export const UpdateServiceEnvSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   variables: z.record(z.string()).describe("Variables de entorno"),
 }).strict();
 
 export const RestartServiceContainerSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   container_id: z.string().optional().describe("ID específico del contenedor"),
 }).strict();
 
 export const GetServiceMetricsSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del servicio"),
+  uuid: coolifyIdSchema.describe("UUID del servicio"),
   metric_type: z.enum(["cpu", "memory", "network", "disk", "all"]).default("all").describe("Tipo de métrica"),
 }).strict();
 

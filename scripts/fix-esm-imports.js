@@ -68,8 +68,10 @@ function processFile(filePath) {
   content = content.replace(
     /(from|import)\s+["'](\.[^"']+)["'](;?)/g,
     (match, keyword, importPath, endStatement) => {
-      // Only add .js if no extension already present
-      if (/\.[a-z0-9]+$/.test(importPath)) {
+      // Only skip if it already has a proper JS/JSON file extension.
+      // Note: names like "./logger.server" or "./base-tool" are NOT extensions —
+      // only .js, .mjs, .cjs, .json, .ts, .tsx qualify as real extensions here.
+      if (/\.(js|mjs|cjs|json|ts|tsx)$/.test(importPath)) {
         return match;
       }
       return `${keyword} "${importPath}.js"${endStatement}`;

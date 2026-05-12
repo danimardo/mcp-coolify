@@ -5,6 +5,7 @@
 import { describe, it, expect } from "vitest";
 import {
   uuidSchema,
+  coolifyIdSchema,
   urlSchema,
   ipSchema,
   portSchema,
@@ -26,6 +27,24 @@ describe("Common Schemas", () => {
     it("should reject invalid UUID", () => {
       expect(() => uuidSchema.parse("not-a-uuid")).toThrow();
       expect(() => uuidSchema.parse("12345")).toThrow();
+    });
+  });
+
+  describe("Coolify ID Schema", () => {
+    it("should accept Coolify custom alphanumeric IDs", () => {
+      expect(() => coolifyIdSchema.parse("b4wskogsggco0wk8kc4wscwk")).not.toThrow();
+      expect(() => coolifyIdSchema.parse("gc0800owkw48cog0w84c0ws8")).not.toThrow();
+      expect(() => coolifyIdSchema.parse("owco0ccsoggskcggowks8c4c")).not.toThrow();
+    });
+
+    it("should accept standard UUIDs", () => {
+      expect(() => coolifyIdSchema.parse("550e8400-e29b-41d4-a716-446655440000")).not.toThrow();
+    });
+
+    it("should reject invalid IDs", () => {
+      expect(() => coolifyIdSchema.parse("not-a-uuid")).toThrow();
+      expect(() => coolifyIdSchema.parse("12345")).toThrow();
+      expect(() => coolifyIdSchema.parse("")).toThrow();
     });
   });
 
