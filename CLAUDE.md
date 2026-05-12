@@ -495,6 +495,33 @@ Checklist de Finalización:
 
 ---
 
+## Sincronización Obligatoria con Documentación Pública
+
+### Cambios Sustanciales Requieren Actualización de README.md
+
+**Cualquier cambio que afecte sustancialmente al MCP debe documentarse TAMBIÉN en `README.md`.**
+
+Los cambios sustanciales incluyen:
+
+**Cambios en Funcionalidad o Comportamiento:**
+- ✅ Nuevas tools o categorías de tools
+- ✅ Cambios en comportamiento de tools existentes
+- ✅ Nuevas características de seguridad o validación
+- ✅ Cambios en eventos de logging o auditoría
+
+**Cambios en Configuración:**
+- ✅ Nuevas variables de entorno
+- ✅ Cambios en parámetros de compilación o ejecución
+- ✅ Cambios en requisitos de Node.js, npm u otras dependencias
+
+**Cambios en Instalación:**
+- ✅ Nuevos pasos en instalación
+- ✅ Cambios en cómo configurar en Claude Code (`.mcp.json`)
+
+**Regla**: Si cambias especificación interna → también actualiza README.md para que usuarios vean los cambios.
+
+---
+
 **Última actualización**: 2026-05-11
 
 <!-- SPECKIT START -->

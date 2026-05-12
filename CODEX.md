@@ -552,6 +552,31 @@ CIERRE:
 
 ---
 
+## IX. Sincronización Obligatoria con Documentación Pública
+
+### Cambios Sustanciales Requieren Actualización de README.md
+
+**Cuando investigues un problema o implementes una solución que cambie sustancialmente el MCP, actualiza TAMBIÉN `README.md`.**
+
+Los cambios sustanciales incluyen:
+
+**Cambios en Funcionalidad o Comportamiento:**
+- ✅ Nuevas tools o categorías de tools
+- ✅ Cambios en comportamiento de tools existentes
+- ✅ Nuevas características de seguridad o validación
+
+**Cambios en Configuración:**
+- ✅ Nuevas variables de entorno
+- ✅ Cambios en requisitos de Node.js, npm u otras dependencias
+
+**Cambios en Instalación:**
+- ✅ Nuevos pasos en instalación
+- ✅ Cambios en cómo configurar en Claude Code (`.mcp.json`)
+
+**Regla**: Si tu investigación/solución afecta cómo instalan o usan el MCP → actualiza README.md para que usuarios finales vean los cambios.
+
+---
+
 **Última actualización**: 2026-05-11  
 **Versión**: 1.0.0  
 **Para**: Codex Agent

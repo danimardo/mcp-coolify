@@ -504,6 +504,31 @@ Cuando Gemini se configure en el proyecto:
 
 ---
 
+## VIII. Sincronización Obligatoria con Documentación Pública
+
+### Cambios Sustanciales Requieren Actualización de README.md
+
+**Si trabajas en cambios que afecten sustancialmente al MCP, actualiza TAMBIÉN `README.md`.**
+
+Los cambios sustanciales incluyen:
+
+**Cambios en Funcionalidad o Comportamiento:**
+- ✅ Nuevas tools o categorías de tools
+- ✅ Cambios en comportamiento de tools existentes
+- ✅ Nuevas características de seguridad
+
+**Cambios en Configuración:**
+- ✅ Nuevas variables de entorno
+- ✅ Cambios en requisitos de Node.js, npm u otras dependencias
+
+**Cambios en Instalación:**
+- ✅ Nuevos pasos en instalación
+- ✅ Cambios en cómo configurar en Claude Code (`.mcp.json`)
+
+**Regla**: Documentación interna (spec.md) + Documentación pública (README.md) deben estar siempre sincronizadas para cambios sustanciales.
+
+---
+
 **Última actualización**: 2026-05-11  
 **Versión**: 1.0.0  
 **Estado**: Plantilla para integración futura

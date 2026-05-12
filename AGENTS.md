@@ -498,6 +498,87 @@ Pregunta SIEMPRE si:
 
 ---
 
+## XIII. Sincronización Obligatoria con Documentación Pública
+
+### 13.1 Cambios Sustanciales Requieren Actualización de README.md
+
+**Cualquier cambio que afecte sustancialmente al MCP debe documentarse TAMBIÉN en `README.md`.**
+
+Los cambios sustanciales incluyen:
+
+**A) Cambios en Funcionalidad o Comportamiento del MCP:**
+- ✅ Nuevas tools o categorías de tools
+- ✅ Cambios en el comportamiento de tools existentes
+- ✅ Cambios en operaciones (creación, eliminación, actualización)
+- ✅ Nuevas características de seguridad o validación
+- ✅ Cambios en eventos de logging o auditoría
+
+**B) Cambios en Configuración del MCP:**
+- ✅ Nuevas variables de entorno (agregar a sección `.env`)
+- ✅ Cambios en cómo se configura el MCP
+- ✅ Cambios en parámetros de compilación o ejecución
+- ✅ Cambios en requisitos de Node.js, npm, u otras dependencias
+
+**C) Cambios en Instalación del MCP:**
+- ✅ Nuevos pasos en el proceso de instalación
+- ✅ Cambios en estructura de directorios relevantes
+- ✅ Cambios en dependencias principales
+- ✅ Cambios en cómo configurar en Claude Code (`.mcp.json`)
+
+### 13.2 Regla de Sincronización
+
+```
+Documentos Internos (Especificación):
+├─ spec.md
+├─ logging-events.md
+├─ CLAUDE.md
+└─ AGENTS.md
+
+Documentación Pública (Para usuarios finales):
+└─ README.md  ← DEBE estar sincronizado con cambios sustanciales
+```
+
+**Si cambias:**
+1. 📝 **Spec internos** (spec.md, CLAUDE.md) — documenta el cambio técnico
+2. 📚 **README.md** — documenta el cambio en términos que entienda un usuario
+
+**Si NO actualizas README.md cuando el cambio es sustancial:**
+- ❌ Los usuarios verán instrucciones desactualizadas
+- ❌ La instalación/configuración fallará para nuevos usuarios
+- ❌ Se crearán issues por documentación desincronizada
+
+### 13.3 Ejemplos
+
+**Ejemplo 1: Agregar nueva variable de entorno**
+```
+CAMBIO: Agregar LOG_TIMEZONE a .env
+ACCIÓN: 
+  ✅ Actualizar spec.md (qué es, rango de valores)
+  ✅ Actualizar CLAUDE.md (cómo usarlo)
+  ✅ Actualizar README.md sección "Configuración (.env)"
+    └─ Agregar descripción y ejemplo de LOG_TIMEZONE
+```
+
+**Ejemplo 2: Agregar nuevo requisito de Node.js**
+```
+CAMBIO: Cambiar requisito mínimo de Node 18 a Node 20
+ACCIÓN:
+  ✅ Actualizar spec.md (sección requisitos)
+  ✅ Actualizar README.md sección "Requisitos Previos"
+    └─ Node.js: 20.x o superior (era 18.x)
+```
+
+**Ejemplo 3: Cambiar cómo configurar en Claude Code**
+```
+CAMBIO: Cambiar estructura de ~/.claude/mcp.json
+ACCIÓN:
+  ✅ Actualizar spec.md
+  ✅ Actualizar README.md sección "Conectar a Claude Code"
+    └─ Mostrar estructura nueva de mcp.json
+```
+
+---
+
 **Última actualización**: 2026-05-11  
 **Versión**: 1.0.0  
 **Aplicable a**: Todos los agentes de IA
