@@ -3,10 +3,10 @@
  * Tools para gestión de proyectos en Coolify
  *
  * Categoría: Projects
- * Tools: list_projects, get_project, create_project
+ * Tools: list, get, create, update, delete, environments (6 total)
  */
 
-import { ToolDefinition, ToolHandler } from "$lib/tools/types";
+import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 import {
   projectResponseSchema,
@@ -16,11 +16,20 @@ import {
   ListProjectsSchema,
   GetProjectSchema,
   CreateProjectSchema,
+  UpdateProjectSchema,
+  DeleteProjectSchema,
+  ListProjectEnvironmentsSchema,
+  UpdateProjectResponseSchema,
+  DeleteProjectResponseSchema,
+  ProjectEnvironmentsListSchema,
 } from "./schemas";
 import {
   listProjectsHandler,
   getProjectHandler,
   createProjectHandler,
+  updateProjectHandler,
+  deleteProjectHandler,
+  listProjectEnvironmentsHandler,
 } from "./handlers";
 
 // === list_projects ===
@@ -150,13 +159,142 @@ export const createProjectTool: ToolHandler = createBaseTool(
   }
 );
 
+// === update_project ===
+
+/**
+ * Tool definition: update_project
+ */
+export const updateProjectDefinition: ToolDefinition = {
+  name: "update_project",
+  category: "projects",
+  description: "Actualizar nombre o descripción de un proyecto",
+  summary: "Modifica el nombre y/o descripción del proyecto especificado",
+  examples: [
+    'invoke("update_project", {uuid: "...", name: "Nuevo nombre"}) → {uuid: "...", name: "Nuevo nombre"}',
+  ],
+  parameters: {
+    schema: UpdateProjectSchema,
+    required: ["uuid"],
+    description: "UUID del proyecto y campos a actualizar",
+  },
+  response: {
+    schema: UpdateProjectResponseSchema,
+    description: "Proyecto actualizado",
+  },
+  requiresConfirmation: true,
+  readOnlyBlocks: true,
+  timeout: 15000,
+  tags: ["projects", "update", "write"],
+};
+
+/**
+ * Tool handler: update_project
+ */
+export const updateProjectTool: ToolHandler = createBaseTool(
+  "update_project",
+  UpdateProjectSchema,
+  UpdateProjectResponseSchema,
+  updateProjectHandler,
+  {
+    requiresConfirmation: true,
+    readOnlyBlocks: true,
+  }
+);
+
+// === delete_project ===
+
+/**
+ * Tool definition: delete_project
+ */
+export const deleteProjectDefinition: ToolDefinition = {
+  name: "delete_project",
+  category: "projects",
+  description: "Eliminar un proyecto",
+  summary: "Elimina un proyecto (operación destructiva e irreversible)",
+  examples: [
+    'invoke("delete_project", {uuid: "..."}) → {success: true, message: "..."}',
+  ],
+  parameters: {
+    schema: DeleteProjectSchema,
+    required: ["uuid"],
+    description: "UUID del proyecto a eliminar",
+  },
+  response: {
+    schema: DeleteProjectResponseSchema,
+    description: "Confirmación de eliminación",
+  },
+  requiresConfirmation: true,
+  readOnlyBlocks: true,
+  timeout: 30000,
+  tags: ["projects", "delete", "write", "destructive"],
+};
+
+/**
+ * Tool handler: delete_project
+ */
+export const deleteProjectTool: ToolHandler = createBaseTool(
+  "delete_project",
+  DeleteProjectSchema,
+  DeleteProjectResponseSchema,
+  deleteProjectHandler,
+  {
+    requiresConfirmation: true,
+    readOnlyBlocks: true,
+  }
+);
+
+// === list_project_environments ===
+
+/**
+ * Tool definition: list_project_environments
+ */
+export const listProjectEnvironmentsDefinition: ToolDefinition = {
+  name: "list_project_environments",
+  category: "projects",
+  description: "Listar entornos de un proyecto",
+  summary: "Devuelve los entornos disponibles dentro de un proyecto",
+  examples: [
+    'invoke("list_project_environments", {uuid: "..."}) → {environments: [{name: "production", ...}], total: 2}',
+  ],
+  parameters: {
+    schema: ListProjectEnvironmentsSchema,
+    required: ["uuid"],
+    description: "UUID del proyecto",
+  },
+  response: {
+    schema: ProjectEnvironmentsListSchema,
+    description: "Lista de entornos",
+  },
+  requiresConfirmation: false,
+  readOnlyBlocks: false,
+  timeout: 10000,
+  tags: ["projects", "environments", "read"],
+};
+
+/**
+ * Tool handler: list_project_environments
+ */
+export const listProjectEnvironmentsTool: ToolHandler = createBaseTool(
+  "list_project_environments",
+  ListProjectEnvironmentsSchema,
+  ProjectEnvironmentsListSchema,
+  listProjectEnvironmentsHandler,
+  {
+    requiresConfirmation: false,
+    readOnlyBlocks: false,
+  }
+);
+
 // === Colección de tools ===
 
 /**
- * Todos los tools de la categoría Projects
+ * Todos los tools de la categoría Projects (6 total)
  */
 export const projectsTools = [
   { definition: listProjectsDefinition, handler: listProjectsTool },
   { definition: getProjectDefinition, handler: getProjectTool },
   { definition: createProjectDefinition, handler: createProjectTool },
+  { definition: updateProjectDefinition, handler: updateProjectTool },
+  { definition: deleteProjectDefinition, handler: deleteProjectTool },
+  { definition: listProjectEnvironmentsDefinition, handler: listProjectEnvironmentsTool },
 ];

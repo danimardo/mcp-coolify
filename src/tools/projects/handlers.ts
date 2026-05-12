@@ -10,6 +10,9 @@ import type {
   ListProjectsParams,
   GetProjectParams,
   CreateProjectParams,
+  UpdateProjectParams,
+  DeleteProjectParams,
+  ListProjectEnvironmentsParams,
 } from "./schemas";
 
 /**
@@ -74,4 +77,77 @@ export async function createProjectHandler(
   });
 
   return response;
+}
+
+/**
+ * Handler para actualizar un proyecto
+ * PATCH /projects/{uuid}
+ */
+export async function updateProjectHandler(
+  parameters: unknown,
+  context: ExtendedToolContext
+): Promise<unknown> {
+  const { uuid, name, description } = parameters as UpdateProjectParams;
+
+  const response = await context.httpClient.post(
+    `/projects/${uuid}`,
+    {
+      name,
+      description,
+    },
+    {
+      requestId: context.requestId,
+    }
+  );
+
+  return response;
+}
+
+/**
+ * Handler para eliminar un proyecto
+ * DELETE /projects/{uuid}
+ */
+export async function deleteProjectHandler(
+  parameters: unknown,
+  context: ExtendedToolContext
+): Promise<unknown> {
+  const { uuid } = parameters as DeleteProjectParams;
+
+  await context.httpClient.post(`/projects/${uuid}`, null, {
+    requestId: context.requestId,
+  });
+
+  return {
+    success: true,
+    message: `Proyecto ${uuid} eliminado correctamente`,
+  };
+}
+
+/**
+ * Handler para listar entornos de un proyecto
+ * GET /projects/{uuid}/environments
+ */
+export async function listProjectEnvironmentsHandler(
+  parameters: unknown,
+  context: ExtendedToolContext
+): Promise<unknown> {
+  const { uuid } = parameters as ListProjectEnvironmentsParams;
+
+  const response = await context.httpClient.get<any>(
+    `/projects/${uuid}/environments`,
+    {
+      requestId: context.requestId,
+    }
+  );
+
+  const environments = Array.isArray(response) ? response : response.environments || [];
+
+  return {
+    environments: environments.map((e: any) => ({
+      uuid: e.uuid,
+      name: e.name,
+      created_at: e.created_at,
+    })),
+    total: environments.length,
+  };
 }
