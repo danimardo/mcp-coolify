@@ -9,6 +9,16 @@
 
 ---
 
+## Clarifications
+
+### Session 2026-05-12
+
+- Q: Performance SLA targets for tool execution? → A: P95 latency < 5s, P99 < 10s, 99.5% availability (aligned with Coolify API expectations)
+- Q: Concurrent request handling strategy? → A: Unlimited concurrent requests via Node.js event loop with internal queuing if needed
+- Q: Coolify API versioning strategy? → A: Support Coolify v4.x (minor versions), breaking changes on v5+, with documented migration path in CHANGELOG
+
+---
+
 ## Executive Summary
 
 **MCP Coolify** is a Model Context Protocol (MCP) server that provides AI agents (Claude Code CLI, etc.) with safe, auditable, and resilient access to Coolify infrastructure management through ~107 MCP tools across 13 categories.
@@ -504,6 +514,9 @@ const requestId = randomUUID(); // e.g., "550e8400-e29b-41d4-a716-446655440000"
 | SC-013 | Critical operations require confirmation | 19 operations | Manual test each confirmed operation |
 | SC-014 | Request IDs correlate in logs | 100% | Grep by requestId across `.logs/app.jsonl` |
 | SC-015 | Response validation rejects malformed data | 100% | Mock Coolify with missing/wrong fields, verify rejection |
+| SC-016 | Performance SLA: P95 < 5s latency | All tools | Monitor response times in production |
+| SC-017 | Performance SLA: P99 < 10s latency | All tools | Monitor 99th percentile response times |
+| SC-018 | Availability target: 99.5% uptime | Monthly | Track server availability, alert on degradation |
 
 ---
 
@@ -552,7 +565,8 @@ const requestId = randomUUID(); // e.g., "550e8400-e29b-41d4-a716-446655440000"
 | Dates | date-fns | 2.30+ | Timezone handling (Madrid) |
 
 ### Coolify API Integration
-- **Coolify API v4** (minimum version required)
+- **Coolify API v4** (minimum version required; supports v4.x minor updates)
+- **Versioning Strategy**: Support Coolify v4.x; breaking changes on v5+ require documented migration path in CHANGELOG
 - **Endpoint**: `https://<coolify-domain>/api/v1`
 - **Auth**: Bearer Token (`Authorization: Bearer <token>`)
 - **Responses**: JSON (no binary data expected)
@@ -571,6 +585,8 @@ const requestId = randomUUID(); // e.g., "550e8400-e29b-41d4-a716-446655440000"
 - Monitoring/alerting on log events handled by downstream systems (e.g., ELK, Datadog)
 - Timezone for human-readable logs is `Europe/Madrid` (customizable via LOG_TIMEZONE)
 - Production logs do not accumulate (external rotation assumed)
+- Concurrent requests handled via Node.js event loop (unlimited concurrent, internal queuing if needed)
+- Performance SLA target: P95 latency < 5s, P99 < 10s, 99.5% availability (aligned with Coolify API)
 
 ### Development Assumptions
 - Local development uses `.logs/` directory (Git-ignored)
@@ -681,7 +697,7 @@ These decisions are LOCKED and cannot be alternatives:
 
 ---
 
-**Last Updated**: 2026-05-11  
+**Last Updated**: 2026-05-12 (Clarifications Session)
 **Status**: Ready for Implementation Planning  
 **Next Phase**: `/speckit-plan` → `/speckit-implement`  
 **Maintained By**: Development Team  
