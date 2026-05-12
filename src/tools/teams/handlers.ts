@@ -1,98 +1,89 @@
 /**
  * Handlers de la categoría Teams
- * Cada handler consulta la API de Coolify y transforma la respuesta
- * al formato esperado por el schema de salida
  */
 
-import { z } from "zod";
 import type { ExtendedToolContext } from "$lib/tools/types";
-import {
-  teamResponseSchema,
-  listTeamsResponseSchema,
-  teamMemberResponseSchema,
-} from "$lib/schemas/coolify-responses";
+import { extractArray, asRecord, asString, asStringOpt } from "$lib/tools/response-helpers";
 
-/** Obtiene el equipo actual del usuario autenticado */
+/** GET /teams/current */
 export async function getCurrentTeamHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const raw = await context.httpClient.get("/teams/current", {
+  const raw = await context.httpClient.get<unknown>("/teams/current", {
     requestId: context.requestId,
   });
-
-  const team = teamResponseSchema.parse(raw);
-
+  const r = asRecord(raw);
   return {
-    uuid: team.id,
-    name: team.name,
-    description: team.description ?? null,
-    created_at: team.createdAt ?? null,
+    uuid: asString(r.uuid ?? r.id),
+    name: asString(r.name),
+    description: asStringOpt(r.description),
+    created_at: asStringOpt(r.created_at),
     members_count: 0,
   };
 }
 
-/** Lista todos los equipos visibles para el usuario autenticado */
+/** GET /teams */
 export async function listAllTeamsHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const raw = await context.httpClient.get("/teams", {
+  const raw = await context.httpClient.get<unknown>("/teams", {
     requestId: context.requestId,
   });
-
-  const response = listTeamsResponseSchema.parse(raw);
-
+  const teams = extractArray(raw, "teams");
   return {
-    teams: response.teams.map((team) => ({
-      uuid: team.id,
-      name: team.name,
-      description: team.description ?? null,
-      created_at: team.createdAt ?? null,
-    })),
-    total: response.total,
+    teams: teams.map((t) => {
+      const team = asRecord(t);
+      return {
+        uuid: asString(team.uuid ?? team.id),
+        name: asString(team.name),
+        description: asStringOpt(team.description),
+        created_at: asStringOpt(team.created_at),
+      };
+    }),
+    total: teams.length,
   };
 }
 
-/** Obtiene un equipo específico por su UUID */
+/** GET /teams/{uuid} */
 export async function getTeamByIdHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as { uuid: string };
-  const raw = await context.httpClient.get(`/teams/${uuid}`, {
+  const raw = await context.httpClient.get<unknown>(`/teams/${uuid}`, {
     requestId: context.requestId,
   });
-
-  const team = teamResponseSchema.parse(raw);
-
+  const r = asRecord(raw);
   return {
-    uuid: team.id,
-    name: team.name,
-    description: team.description ?? null,
-    created_at: team.createdAt ?? null,
+    uuid: asString(r.uuid ?? r.id),
+    name: asString(r.name),
+    description: asStringOpt(r.description),
+    created_at: asStringOpt(r.created_at),
     members_count: 0,
   };
 }
 
-/** Obtiene los miembros del equipo actual */
+/** GET /teams/current/members */
 export async function getCurrentTeamMembersHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const raw = await context.httpClient.get("/teams/current/members", {
+  const raw = await context.httpClient.get<unknown>("/teams/current/members", {
     requestId: context.requestId,
   });
-
-  const members = z.array(teamMemberResponseSchema).parse(raw);
-
+  const members = extractArray(raw, "members");
   return {
-    members: members.map((member) => ({
-      uuid: member.id,
-      name: member.name,
-      email: member.email,
-      role: member.role,
-    })),
+    members: members.map((m) => {
+      const member = asRecord(m);
+      return {
+        uuid: asString(member.uuid ?? member.id),
+        name: asString(member.name),
+        email: asString(member.email),
+        role: asString(member.role) as "owner" | "admin" | "member",
+      };
+    }),
     total: members.length,
   };
 }

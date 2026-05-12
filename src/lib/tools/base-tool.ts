@@ -3,10 +3,9 @@
  *
  * Provides common functionality for all tools:
  * - Parameter validation
- * - Response validation
+ * - Response passthrough (response schema is documentation-only)
  * - Error handling
  * - Logging
- * - Confirmation flow
  * - READ_ONLY guard
  */
 
@@ -14,23 +13,19 @@ import { z } from "zod";
 import { ExtendedToolContext, ToolHandler, ToolResponse } from "./types";
 import {
   ValidationError,
-  ResponseValidationError,
 } from "../errors/error-types";
 import { formatErrorResponse, logError } from "../errors/response-formatter";
 import { guardReadOnly, isDestructiveOperation } from "../safety/readonly-guard";
-import {
-  ConfirmationFlow,
-  requiresConfirmation,
-  getConfirmationReason,
-} from "../confirmation/flow";
 
 /**
- * Wrap a tool handler with common logic
+ * Wrap a tool handler with common logic.
+ * Note: response schema is documentation-only — runtime response is passed through as-is.
+ * Confirmation flow is handled upstream by the MCP server (server/index.ts).
  */
 export function createBaseTool(
   toolName: string,
   parameterSchema: z.ZodType,
-  responseSchema: z.ZodType,
+  _responseSchema: z.ZodType,
   handler: (
     parameters: unknown,
     context: ExtendedToolContext
@@ -86,68 +81,10 @@ export function createBaseTool(
         throw error;
       }
 
-      // Phase 4: Check confirmation requirement
-      const confirmationFlow = new ConfirmationFlow(logger);
-      if (options?.requiresConfirmation ?? requiresConfirmation(toolName)) {
-        if (!confirmationFlow.isConfirmed(requestId)) {
-          const token = confirmationFlow.requestConfirmation({
-            operationId: requestId,
-            operationName: toolName,
-            parameters: validatedParameters as Record<string, unknown>,
-            reason: getConfirmationReason(toolName),
-            requiredConfirmation: true,
-          });
-
-          return {
-            success: false,
-            error: {
-              code: "CONFIRMATION_REQUIRED",
-              message: `Operation requires confirmation: ${getConfirmationReason(toolName)}`,
-              hint: `Confirm with token: ${token}`,
-            },
-            meta: {
-              requestId,
-              duration: Date.now() - startTime,
-              timestamp: new Date().toISOString(),
-              confirmationToken: token,
-            },
-          } satisfies ToolResponse;
-        }
-
-        // Operation was confirmed
-        confirmationFlow.clearConfirmed(requestId);
-      }
-
-      // Phase 5: Execute handler
+      // Phase 4: Execute handler
       const result = await handler(validatedParameters, context);
 
-      // Phase 6: Validate response
-      let validatedResponse: unknown;
-      try {
-        validatedResponse = await responseSchema.parseAsync(result);
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          const responseError = new ResponseValidationError(
-            `Response validation failed: Coolify API returned unexpected format`,
-            {
-              expectedSchema: responseSchema,
-              actualData: result,
-              errors: error.errors,
-            }
-          );
-
-          logger.error("response.validation_failed", {
-            requestId,
-            toolName,
-            errors: error.errors,
-          });
-
-          throw responseError;
-        }
-        throw error;
-      }
-
-      // Phase 7: Log success
+      // Phase 5: Log success
       const duration = Date.now() - startTime;
       logger.info("mcp.tool.completed", {
         requestId,
@@ -158,7 +95,7 @@ export function createBaseTool(
 
       return {
         success: true,
-        data: validatedResponse,
+        data: result,
         meta: {
           requestId,
           duration,
@@ -166,7 +103,7 @@ export function createBaseTool(
         },
       } satisfies ToolResponse;
     } catch (error) {
-      // Phase 8: Handle errors
+      // Phase 6: Handle errors
       const duration = Date.now() - startTime;
 
       logError(error, logger, {

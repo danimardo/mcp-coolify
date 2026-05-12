@@ -9,16 +9,14 @@
 import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 import {
-  projectResponseSchema,
-  listProjectsResponseSchema,
-} from "$lib/schemas/coolify-responses";
-import {
   ListProjectsSchema,
   GetProjectSchema,
   CreateProjectSchema,
   UpdateProjectSchema,
   DeleteProjectSchema,
   ListProjectEnvironmentsSchema,
+  ProjectSchema,
+  ProjectsListSchema,
   UpdateProjectResponseSchema,
   DeleteProjectResponseSchema,
   ProjectEnvironmentsListSchema,
@@ -52,7 +50,7 @@ export const listProjectsDefinition: ToolDefinition = {
     description: "Filtro por equipo y paginación opcionales",
   },
   response: {
-    schema: listProjectsResponseSchema,
+    schema: ProjectsListSchema,
     description: "Lista paginada de proyectos",
   },
   requiresConfirmation: false,
@@ -67,7 +65,7 @@ export const listProjectsDefinition: ToolDefinition = {
 export const listProjectsTool: ToolHandler = createBaseTool(
   "list_projects",
   ListProjectsSchema,
-  listProjectsResponseSchema,
+  ProjectsListSchema,
   listProjectsHandler,
   {
     requiresConfirmation: false,
@@ -93,7 +91,7 @@ export const getProjectDefinition: ToolDefinition = {
     description: "UUID del proyecto",
   },
   response: {
-    schema: projectResponseSchema,
+    schema: ProjectSchema,
     description: "Detalles del proyecto",
   },
   requiresConfirmation: false,
@@ -108,7 +106,7 @@ export const getProjectDefinition: ToolDefinition = {
 export const getProjectTool: ToolHandler = createBaseTool(
   "get_project",
   GetProjectSchema,
-  projectResponseSchema,
+  ProjectSchema,
   getProjectHandler,
   {
     requiresConfirmation: false,
@@ -136,7 +134,7 @@ export const createProjectDefinition: ToolDefinition = {
     description: "Nombre del proyecto y descripción opcional",
   },
   response: {
-    schema: projectResponseSchema,
+    schema: ProjectSchema,
     description: "Detalles del proyecto creado",
   },
   requiresConfirmation: true,
@@ -151,7 +149,7 @@ export const createProjectDefinition: ToolDefinition = {
 export const createProjectTool: ToolHandler = createBaseTool(
   "create_project",
   CreateProjectSchema,
-  projectResponseSchema,
+  ProjectSchema,
   createProjectHandler,
   {
     requiresConfirmation: true,
