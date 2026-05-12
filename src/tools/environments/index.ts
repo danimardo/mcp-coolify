@@ -1,9 +1,10 @@
 /**
  * Environments Category Tools
- * Tools para gestión de ambientes en Coolify
+ * Ambientes bajo /projects/{project_uuid}/environments
  *
  * Categoría: Environments
- * Tools: list, get, create, update, delete = 4 total
+ * Tools: list, get, create, delete = 4 total
+ * (update eliminado: no existe PATCH endpoint en Coolify API v4)
  */
 
 import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
@@ -12,7 +13,6 @@ import {
   ListEnvironmentsSchema,
   GetEnvironmentSchema,
   CreateEnvironmentSchema,
-  UpdateEnvironmentSchema,
   DeleteEnvironmentSchema,
   EnvironmentsListSchema,
   EnvironmentDetailSchema,
@@ -22,7 +22,6 @@ import {
   listEnvironmentsHandler,
   getEnvironmentHandler,
   createEnvironmentHandler,
-  updateEnvironmentHandler,
   deleteEnvironmentHandler,
 } from "./handlers";
 
@@ -31,15 +30,15 @@ import {
 export const listEnvironmentsDefinition: ToolDefinition = {
   name: "list_environments",
   category: "environments",
-  description: "Listar todos los ambientes",
-  summary: "Devuelve lista de ambientes con filtrado y paginación",
+  description: "Listar ambientes de un proyecto",
+  summary: "Devuelve todos los ambientes del proyecto especificado",
   examples: [
-    'invoke("list_environments", {}) → {environments: [...], total: 3}',
-    'invoke("list_environments", {project_uuid: "...", limit: 20}) → {environments: [...], total: 2}',
+    'invoke("list_environments", {project_uuid: "550e8400-..."}) → {environments: [...], total: 3}',
   ],
   parameters: {
     schema: ListEnvironmentsSchema,
-    description: "Filtro por proyecto y paginación",
+    description: "UUID del proyecto",
+    required: ["project_uuid"],
   },
   response: {
     schema: EnvironmentsListSchema,
@@ -56,10 +55,7 @@ export const listEnvironmentsTool: ToolHandler = createBaseTool(
   ListEnvironmentsSchema,
   EnvironmentsListSchema,
   listEnvironmentsHandler,
-  {
-    requiresConfirmation: false,
-    readOnlyBlocks: false,
-  }
+  { requiresConfirmation: false, readOnlyBlocks: false }
 );
 
 // === get_environment ===
@@ -68,13 +64,14 @@ export const getEnvironmentDefinition: ToolDefinition = {
   name: "get_environment",
   category: "environments",
   description: "Obtener detalles de un ambiente específico",
-  summary: "Devuelve configuración y recursos del ambiente",
+  summary: "Devuelve configuración del ambiente por nombre o UUID",
   examples: [
-    'invoke("get_environment", {uuid: "550e8400-..."}) → {uuid: "...", name: "production", ...}',
+    'invoke("get_environment", {project_uuid: "...", environment_name_or_uuid: "production"}) → {name: "production", ...}',
   ],
   parameters: {
     schema: GetEnvironmentSchema,
-    description: "UUID del ambiente",
+    description: "UUID del proyecto y nombre o UUID del ambiente",
+    required: ["project_uuid", "environment_name_or_uuid"],
   },
   response: {
     schema: EnvironmentDetailSchema,
@@ -91,10 +88,7 @@ export const getEnvironmentTool: ToolHandler = createBaseTool(
   GetEnvironmentSchema,
   EnvironmentDetailSchema,
   getEnvironmentHandler,
-  {
-    requiresConfirmation: false,
-    readOnlyBlocks: false,
-  }
+  { requiresConfirmation: false, readOnlyBlocks: false }
 );
 
 // === create_environment ===
@@ -102,14 +96,15 @@ export const getEnvironmentTool: ToolHandler = createBaseTool(
 export const createEnvironmentDefinition: ToolDefinition = {
   name: "create_environment",
   category: "environments",
-  description: "Crear un nuevo ambiente",
-  summary: "Crea un nuevo ambiente en un proyecto. Requiere confirmación.",
+  description: "Crear un nuevo ambiente en un proyecto",
+  summary: "Crea un nuevo ambiente. Requiere confirmación.",
   examples: [
     'invoke("create_environment", {project_uuid: "...", name: "staging"}) → {uuid: "..."}',
   ],
   parameters: {
     schema: CreateEnvironmentSchema,
-    description: "Proyecto, nombre y descripción opcional",
+    description: "UUID del proyecto, nombre y descripción opcional",
+    required: ["project_uuid", "name"],
   },
   response: {
     schema: EnvironmentDetailSchema,
@@ -126,46 +121,7 @@ export const createEnvironmentTool: ToolHandler = createBaseTool(
   CreateEnvironmentSchema,
   EnvironmentDetailSchema,
   createEnvironmentHandler,
-  {
-    requiresConfirmation: true,
-    readOnlyBlocks: true,
-  }
-);
-
-// === update_environment ===
-
-export const updateEnvironmentDefinition: ToolDefinition = {
-  name: "update_environment",
-  category: "environments",
-  description: "Actualizar configuración de un ambiente",
-  summary: "Modifica nombre o descripción del ambiente",
-  examples: [
-    'invoke("update_environment", {uuid: "...", name: "staging-v2"}) → {uuid: "..."}',
-  ],
-  parameters: {
-    schema: UpdateEnvironmentSchema,
-    required: ["uuid"],
-    description: "UUID y campos a actualizar",
-  },
-  response: {
-    schema: EnvironmentDetailSchema,
-    description: "Ambiente actualizado",
-  },
-  requiresConfirmation: true,
-  readOnlyBlocks: true,
-  timeout: 15000,
-  tags: ["environments", "update", "write"],
-};
-
-export const updateEnvironmentTool: ToolHandler = createBaseTool(
-  "update_environment",
-  UpdateEnvironmentSchema,
-  EnvironmentDetailSchema,
-  updateEnvironmentHandler,
-  {
-    requiresConfirmation: true,
-    readOnlyBlocks: true,
-  }
+  { requiresConfirmation: true, readOnlyBlocks: true }
 );
 
 // === delete_environment ===
@@ -173,15 +129,15 @@ export const updateEnvironmentTool: ToolHandler = createBaseTool(
 export const deleteEnvironmentDefinition: ToolDefinition = {
   name: "delete_environment",
   category: "environments",
-  description: "Eliminar un ambiente",
+  description: "Eliminar un ambiente de un proyecto",
   summary: "Elimina un ambiente (operación destructiva). Requiere confirmación.",
   examples: [
-    'invoke("delete_environment", {uuid: "..."}) → {success: true, message: "..."}',
+    'invoke("delete_environment", {project_uuid: "...", environment_name_or_uuid: "staging"}) → {success: true}',
   ],
   parameters: {
     schema: DeleteEnvironmentSchema,
-    required: ["uuid"],
-    description: "UUID del ambiente a eliminar",
+    required: ["project_uuid", "environment_name_or_uuid"],
+    description: "UUID del proyecto y nombre o UUID del ambiente a eliminar",
   },
   response: {
     schema: ActionResponseSchema,
@@ -198,21 +154,15 @@ export const deleteEnvironmentTool: ToolHandler = createBaseTool(
   DeleteEnvironmentSchema,
   ActionResponseSchema,
   deleteEnvironmentHandler,
-  {
-    requiresConfirmation: true,
-    readOnlyBlocks: true,
-  }
+  { requiresConfirmation: true, readOnlyBlocks: true }
 );
 
 // === Colección de tools ===
 
-/**
- * Todos los tools de la categoría Environments (4 total)
- */
+/** Todos los tools de la categoría Environments (4 total) */
 export const environmentsTools = [
   { definition: listEnvironmentsDefinition, handler: listEnvironmentsTool },
   { definition: getEnvironmentDefinition, handler: getEnvironmentTool },
   { definition: createEnvironmentDefinition, handler: createEnvironmentTool },
-  { definition: updateEnvironmentDefinition, handler: updateEnvironmentTool },
   { definition: deleteEnvironmentDefinition, handler: deleteEnvironmentTool },
 ];

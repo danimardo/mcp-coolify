@@ -1,6 +1,6 @@
 /**
  * Zod schemas para herramientas de Ambientes
- * 4 herramientas para gestión de ambientes: listar, obtener, crear, actualizar, eliminar
+ * Ambientes se gestionan bajo /projects/{project_uuid}/environments
  */
 
 import { z } from "zod";
@@ -10,13 +10,12 @@ import { z } from "zod";
 // ============================================================
 
 export const ListEnvironmentsSchema = z.object({
-  project_uuid: z.string().uuid().optional().describe("Filtrar por proyecto"),
-  limit: z.number().int().min(1).max(100).default(50).describe("Elementos por página"),
-  skip: z.number().int().min(0).default(0).describe("Offset"),
+  project_uuid: z.string().uuid().describe("UUID del proyecto"),
 }).strict();
 
 export const GetEnvironmentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del ambiente"),
+  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  environment_name_or_uuid: z.string().min(1).describe("Nombre o UUID del ambiente"),
 }).strict();
 
 export const CreateEnvironmentSchema = z.object({
@@ -25,14 +24,9 @@ export const CreateEnvironmentSchema = z.object({
   description: z.string().optional().describe("Descripción"),
 }).strict();
 
-export const UpdateEnvironmentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del ambiente"),
-  name: z.string().min(1).optional().describe("Nuevo nombre"),
-  description: z.string().optional().describe("Nueva descripción"),
-}).strict();
-
 export const DeleteEnvironmentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del ambiente"),
+  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  environment_name_or_uuid: z.string().min(1).describe("Nombre o UUID del ambiente a eliminar"),
 }).strict();
 
 // ============================================================
@@ -40,26 +34,25 @@ export const DeleteEnvironmentSchema = z.object({
 // ============================================================
 
 export const EnvironmentSchema = z.object({
-  uuid: z.string(),
+  uuid: z.string().optional(),
   name: z.string(),
-  project_uuid: z.string(),
-  created_at: z.string().datetime(),
-}).strict();
+  project_uuid: z.string().optional(),
+  created_at: z.string().datetime().optional(),
+});
 
 export const EnvironmentDetailSchema = EnvironmentSchema.extend({
   description: z.string().optional(),
-  resource_count: z.number().int().optional(),
-}).strict();
+});
 
 export const EnvironmentsListSchema = z.object({
   environments: z.array(EnvironmentSchema),
   total: z.number().int(),
-}).strict();
+});
 
 export const ActionResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
-}).strict();
+});
 
 // ============================================================
 // TIPOS INFERIDOS
@@ -68,7 +61,6 @@ export const ActionResponseSchema = z.object({
 export type ListEnvironmentsParams = z.infer<typeof ListEnvironmentsSchema>;
 export type GetEnvironmentParams = z.infer<typeof GetEnvironmentSchema>;
 export type CreateEnvironmentParams = z.infer<typeof CreateEnvironmentSchema>;
-export type UpdateEnvironmentParams = z.infer<typeof UpdateEnvironmentSchema>;
 export type DeleteEnvironmentParams = z.infer<typeof DeleteEnvironmentSchema>;
 
 export type Environment = z.infer<typeof EnvironmentSchema>;

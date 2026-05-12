@@ -3,6 +3,7 @@
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import { extractArray, asString, asStringOpt, asIsoDate } from "$lib/tools/response-helpers";
 import type {
   ListCloudTokensParams,
   GetCloudTokenParams,
@@ -15,6 +16,7 @@ import type {
   ValidationResult,
 } from "./schemas";
 
+/** GET /cloud-tokens */
 export async function listCloudTokensHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -22,43 +24,45 @@ export async function listCloudTokensHandler(
   const params = parameters as ListCloudTokensParams;
 
   const queryParams = new URLSearchParams({
-    limit: String(params.limit || 50),
-    skip: String(params.skip || 0),
+    limit: String(params.limit ?? 50),
+    skip: String(params.skip ?? 0),
   });
 
-  const response = await context.httpClient.get<any>(
+  const response = await context.httpClient.get<unknown>(
     `/cloud-tokens?${queryParams.toString()}`,
     { requestId: context.requestId }
   );
 
-  const tokens = Array.isArray(response) ? response : response.tokens || [];
+  const tokens = extractArray(response, "tokens");
 
   return {
-    tokens: tokens.map((t: any) => ({
-      uuid: t.uuid,
-      name: t.name,
-      provider: t.provider,
-      description: t.description,
-      created_at: t.created_at || new Date().toISOString(),
+    tokens: tokens.map((t) => ({
+      uuid: asString(t.uuid),
+      name: asString(t.name),
+      provider: asString(t.provider),
+      description: asStringOpt(t.description),
+      created_at: asIsoDate(t.created_at),
     })),
     total: tokens.length,
   };
 }
 
+/** GET /cloud-tokens/{uuid} */
 export async function getCloudTokenHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CloudTokenDetail> {
-  const params = parameters as GetCloudTokenParams;
+  const { uuid } = parameters as GetCloudTokenParams;
 
   const response = await context.httpClient.get<CloudTokenDetail>(
-    `/cloud-tokens/${params.uuid}`,
+    `/cloud-tokens/${uuid}`,
     { requestId: context.requestId }
   );
 
   return response;
 }
 
+/** POST /cloud-tokens */
 export async function createCloudTokenHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -74,12 +78,12 @@ export async function createCloudTokenHandler(
   return response;
 }
 
+/** PATCH /cloud-tokens/{uuid} */
 export async function updateCloudTokenHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CloudTokenDetail> {
-  const params = parameters as UpdateCloudTokenParams;
-  const { uuid, ...updateData } = params;
+  const { uuid, ...updateData } = parameters as UpdateCloudTokenParams;
 
   const response = await context.httpClient.patch<CloudTokenDetail>(
     `/cloud-tokens/${uuid}`,
@@ -90,6 +94,7 @@ export async function updateCloudTokenHandler(
   return response;
 }
 
+/** DELETE /cloud-tokens/{uuid} */
 export async function deleteCloudTokenHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -100,20 +105,18 @@ export async function deleteCloudTokenHandler(
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Token ${uuid} eliminado correctamente`,
-  };
+  return { success: true, message: `Token ${uuid} eliminado correctamente` };
 }
 
+/** POST /cloud-tokens/{uuid}/validate */
 export async function validateTokenHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<ValidationResult> {
-  const params = parameters as ValidateTokenParams;
+  const { uuid } = parameters as ValidateTokenParams;
 
   const response = await context.httpClient.post<ValidationResult>(
-    `/cloud-tokens/${params.uuid}/validate`,
+    `/cloud-tokens/${uuid}/validate`,
     {},
     { requestId: context.requestId }
   );

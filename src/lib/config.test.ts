@@ -73,8 +73,8 @@ describe("Configuration", () => {
   it("should parse numeric env vars correctly", () => {
     process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
     process.env.COOLIFY_TOKEN = "tr_test_token_123";
-    process.env.REQUEST_TIMEOUT = "60000";
-    process.env.MAX_RETRIES = "5";
+    process.env.COOLIFY_REQUEST_TIMEOUT = "60000";
+    process.env.COOLIFY_MAX_RETRIES = "5";
 
     resetConfig();
     const config = getConfig();
@@ -139,7 +139,7 @@ describe("Configuration", () => {
   it("should validate request timeout constraints", () => {
     process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
     process.env.COOLIFY_TOKEN = "tr_test_token_123";
-    process.env.REQUEST_TIMEOUT = "500"; // Less than 1000
+    process.env.COOLIFY_REQUEST_TIMEOUT = "500"; // Less than 1000
 
     resetConfig();
     expect(() => getConfig()).toThrow();

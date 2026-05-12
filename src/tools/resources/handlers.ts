@@ -3,46 +3,43 @@
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import { extractArray, asRecord, asString, asStringOpt, asIsoDate } from "$lib/tools/response-helpers";
 import type { ResourcesResponse } from "./schemas";
 
-/**
- * Get all resources (applications, databases, services)
- * GET /resources
- */
+/** GET /resources */
 export async function getResourcesHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<ResourcesResponse> {
-  const response = await context.httpClient.get<any>(`/resources`, {
+  const response = await context.httpClient.get<unknown>(`/resources`, {
     requestId: context.requestId,
   });
 
-  const applications = Array.isArray(response.applications)
-    ? response.applications
-    : [];
-  const databases = Array.isArray(response.databases) ? response.databases : [];
-  const services = Array.isArray(response.services) ? response.services : [];
+  const r = asRecord(response);
+  const applications = extractArray(r.applications, "applications");
+  const databases = extractArray(r.databases, "databases");
+  const services = extractArray(r.services, "services");
 
   return {
-    applications: applications.map((a: any) => ({
-      uuid: a.uuid,
-      name: a.name,
-      status: a.status || "unknown",
-      created_at: a.created_at || new Date().toISOString(),
+    applications: applications.map((a) => ({
+      uuid: asString(a.uuid),
+      name: asString(a.name),
+      status: asString(a.status, "unknown"),
+      created_at: asIsoDate(a.created_at),
     })),
-    databases: databases.map((d: any) => ({
-      uuid: d.uuid,
-      name: d.name,
-      type: d.type || "database",
-      status: d.status || "unknown",
-      created_at: d.created_at || new Date().toISOString(),
+    databases: databases.map((d) => ({
+      uuid: asString(d.uuid),
+      name: asString(d.name),
+      type: asString(d.type, "database"),
+      status: asString(d.status, "unknown"),
+      created_at: asIsoDate(d.created_at),
     })),
-    services: services.map((s: any) => ({
-      uuid: s.uuid,
-      name: s.name,
-      type: s.type || "service",
-      status: s.status || "unknown",
-      created_at: s.created_at || new Date().toISOString(),
+    services: services.map((s) => ({
+      uuid: asString(s.uuid),
+      name: asString(s.name),
+      type: asStringOpt(s.type) ?? "service",
+      status: asString(s.status, "unknown"),
+      created_at: asIsoDate(s.created_at),
     })),
     total: applications.length + databases.length + services.length,
   };

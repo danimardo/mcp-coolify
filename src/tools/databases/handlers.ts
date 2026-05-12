@@ -1,10 +1,16 @@
 /**
  * Handlers para herramientas de Bases de Datos
- * Implementan la lógica de negocio y llamadas a la API de Coolify
- * 21 operaciones: list, get, create (8 tipos), update, delete, start, stop, restart, backup (6 ops)
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import {
+  extractArray,
+  asRecord,
+  asString,
+  asStringOpt,
+  asNumberOpt,
+  asIsoDate,
+} from "$lib/tools/response-helpers";
 import type {
   GetDatabaseParams,
   CreateDatabaseParams,
@@ -26,530 +32,346 @@ import type {
   BackupExecutionsList,
 } from "./schemas";
 
-/**
- * Handler para listar todas las bases de datos
- * GET /databases
- */
+/** GET /databases */
 export async function listDatabasesHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<DatabasesList> {
-  const response = await context.httpClient.get<any>(`/databases`, {
+  const response = await context.httpClient.get<unknown>(`/databases`, {
     requestId: context.requestId,
   });
 
-  const databases = Array.isArray(response) ? response : response.databases || [];
+  const databases = extractArray(response, "databases");
 
   return {
-    databases: databases.map((db: any) => ({
-      uuid: db.uuid,
-      name: db.name,
-      type: db.type,
-      status: db.status || "unknown",
-      created_at: db.created_at || new Date().toISOString(),
+    databases: databases.map((db) => ({
+      uuid: asString(db.uuid),
+      name: asString(db.name),
+      type: asString(db.type),
+      status: asString(db.status, "unknown"),
+      created_at: asIsoDate(db.created_at),
     })),
     total: databases.length,
   };
 }
 
-/**
- * Handler para obtener una base de datos específica
- * GET /databases/{uuid}
- */
+/** GET /databases/{uuid} */
 export async function getDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<DatabaseDetail> {
-  const params = parameters as GetDatabaseParams;
+  const { uuid } = parameters as GetDatabaseParams;
 
-  const response = await context.httpClient.get<DatabaseDetail>(
-    `/databases/${params.uuid}`,
-    {
-      requestId: context.requestId,
-    }
-  );
+  const response = await context.httpClient.get<unknown>(`/databases/${uuid}`, {
+    requestId: context.requestId,
+  });
 
-  return response;
+  const db = asRecord(response);
+  return {
+    uuid: asString(db.uuid),
+    name: asString(db.name),
+    type: asString(db.type),
+    status: asString(db.status, "unknown"),
+    created_at: asIsoDate(db.created_at),
+    version: asStringOpt(db.version),
+    port: asNumberOpt(db.port),
+  };
 }
 
-/**
- * Handler para crear una base de datos PostgreSQL
- * POST /databases { type: 'postgresql', ... }
- */
+/** POST /databases/postgresql */
 export async function createDatabasePostgresHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "postgresql",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/postgresql", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos MySQL
- * POST /databases { type: 'mysql', ... }
- */
+/** POST /databases/mysql */
 export async function createDatabaseMysqlHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "mysql",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/mysql", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos MariaDB
- * POST /databases { type: 'mariadb', ... }
- */
+/** POST /databases/mariadb */
 export async function createDatabaseMariadbHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "mariadb",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/mariadb", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos MongoDB
- * POST /databases { type: 'mongodb', ... }
- */
+/** POST /databases/mongodb */
 export async function createDatabaseMongodbHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "mongodb",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/mongodb", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos Redis
- * POST /databases { type: 'redis', ... }
- */
+/** POST /databases/redis */
 export async function createDatabaseRedisHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "redis",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/redis", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos Dragonfly
- * POST /databases { type: 'dragonfly', ... }
- */
+/** POST /databases/dragonfly */
 export async function createDatabaseDragonflyHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "dragonfly",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/dragonfly", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos KeyDB
- * POST /databases { type: 'keydb', ... }
- */
+/** POST /databases/keydb */
 export async function createDatabaseKeydbHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "keydb",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/keydb", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para crear una base de datos ClickHouse
- * POST /databases { type: 'clickhouse', ... }
- */
+/** POST /databases/clickhouse */
 export async function createDatabaseClickhouseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<CreateDatabaseResponse> {
   const params = parameters as CreateDatabaseParams;
-
-  const payload = {
-    ...params,
-    type: "clickhouse",
-  };
-
-  const response = await context.httpClient.post<CreateDatabaseResponse>(
-    "/databases",
-    payload,
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
+  const response = await context.httpClient.post<unknown>("/databases/clickhouse", params, {
+    requestId: context.requestId,
+  });
+  const r = asRecord(response);
+  return { uuid: asString(r.uuid), name: asString(r.name), status: asString(r.status, "created") };
 }
 
-/**
- * Handler para actualizar una base de datos
- * PATCH /databases/{uuid}
- */
+/** PATCH /databases/{uuid} */
 export async function updateDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<DatabaseDetail> {
   const { uuid, name, description } = parameters as UpdateDatabaseParams;
 
-  const response = await context.httpClient.post<DatabaseDetail>(
+  const response = await context.httpClient.patch<unknown>(
     `/databases/${uuid}`,
-    {
-      name,
-      description,
-    },
-    {
-      requestId: context.requestId,
-    }
+    { name, description },
+    { requestId: context.requestId }
   );
 
-  return response;
+  const db = asRecord(response);
+  return {
+    uuid: asString(db.uuid),
+    name: asString(db.name),
+    type: asString(db.type),
+    status: asString(db.status, "unknown"),
+    created_at: asIsoDate(db.created_at),
+    version: asStringOpt(db.version),
+    port: asNumberOpt(db.port),
+  };
 }
 
-/**
- * Handler para eliminar una base de datos
- * DELETE /databases/{uuid}
- */
+/** DELETE /databases/{uuid} */
 export async function deleteDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as DeleteDatabaseParams;
 
-  await context.httpClient.post(`/databases/${uuid}`, null, {
+  await context.httpClient.delete(`/databases/${uuid}`, {
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Base de datos ${uuid} eliminada correctamente`,
-  };
+  return { success: true, message: `Base de datos ${uuid} eliminada correctamente` };
 }
 
-/**
- * Handler para iniciar una base de datos
- * POST /databases/{uuid}/start
- */
+/** GET /databases/{uuid}/start */
 export async function startDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as StartDatabaseParams;
 
-  const response = await context.httpClient.post(
-    `/databases/${uuid}/start`,
-    {},
-    {
-      requestId: context.requestId,
-    }
-  );
+  await context.httpClient.get<unknown>(`/databases/${uuid}/start`, {
+    requestId: context.requestId,
+  });
 
-  return {
-    success: true,
-    message: `Base de datos ${uuid} iniciada`,
-    result: response,
-  };
+  return { success: true, message: `Base de datos ${uuid} iniciada` };
 }
 
-/**
- * Handler para detener una base de datos
- * POST /databases/{uuid}/stop
- */
+/** GET /databases/{uuid}/stop */
 export async function stopDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as StopDatabaseParams;
 
-  const response = await context.httpClient.post(
-    `/databases/${uuid}/stop`,
-    {},
-    {
-      requestId: context.requestId,
-    }
-  );
+  await context.httpClient.get<unknown>(`/databases/${uuid}/stop`, {
+    requestId: context.requestId,
+  });
 
-  return {
-    success: true,
-    message: `Base de datos ${uuid} detenida`,
-    result: response,
-  };
+  return { success: true, message: `Base de datos ${uuid} detenida` };
 }
 
-/**
- * Handler para reiniciar una base de datos
- * POST /databases/{uuid}/restart
- */
+/** GET /databases/{uuid}/restart */
 export async function restartDatabaseHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as RestartDatabaseParams;
 
-  const response = await context.httpClient.post(
-    `/databases/${uuid}/restart`,
-    {},
-    {
-      requestId: context.requestId,
-    }
-  );
+  await context.httpClient.get<unknown>(`/databases/${uuid}/restart`, {
+    requestId: context.requestId,
+  });
 
-  return {
-    success: true,
-    message: `Base de datos ${uuid} reiniciada`,
-    result: response,
-  };
+  return { success: true, message: `Base de datos ${uuid} reiniciada` };
 }
 
-/**
- * Handler para listar backups de una base de datos
- * GET /databases/{uuid}/backups
- */
+/** GET /databases/{uuid}/backups */
 export async function listDatabaseBackupsHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<DatabaseBackupsList> {
   const { uuid } = parameters as ListDatabaseBackupsParams;
 
-  const response = await context.httpClient.get<any>(
+  const response = await context.httpClient.get<unknown>(
     `/databases/${uuid}/backups`,
-    {
-      requestId: context.requestId,
-    }
+    { requestId: context.requestId }
   );
 
-  const backups = Array.isArray(response) ? response : response.backups || [];
+  const backups = extractArray(response, "backups");
 
   return {
-    backups: backups.map((b: any) => ({
-      uuid: b.uuid,
-      name: b.name,
-      frequency: b.frequency,
-      retention_days: b.retention_days,
+    backups: backups.map((b) => ({
+      uuid: asString(b.uuid),
+      name: asString(b.name),
+      frequency: asString(b.frequency),
+      retention_days: asNumberOpt(b.retention_days) ?? 0,
     })),
     total: backups.length,
   };
 }
 
-/**
- * Handler para crear un backup para una base de datos
- * POST /databases/{uuid}/backups { frequency, retention_days }
- */
+/** POST /databases/{uuid}/backups */
 export async function createDatabaseBackupHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const { uuid, frequency, retention_days } =
-    parameters as CreateDatabaseBackupParams;
+  const { uuid, frequency, retention_days } = parameters as CreateDatabaseBackupParams;
 
-  const response = await context.httpClient.post(
+  const response = await context.httpClient.post<unknown>(
     `/databases/${uuid}/backups`,
-    {
-      frequency,
-      retention_days,
-    },
-    {
-      requestId: context.requestId,
-    }
+    { frequency, retention_days },
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para actualizar configuración de backup
- * PATCH /databases/{uuid}/backups/{backup_uuid}
- */
+/** PATCH /databases/backups/{backup_uuid} */
 export async function updateDatabaseBackupHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const { uuid, frequency, retention_days } =
+  const { uuid: backup_uuid, frequency, retention_days } =
     parameters as UpdateDatabaseBackupParams;
 
-  const response = await context.httpClient.post(
-    `/databases/${uuid}/backups`,
-    {
-      frequency,
-      retention_days,
-    },
-    {
-      requestId: context.requestId,
-    }
+  const response = await context.httpClient.patch<unknown>(
+    `/databases/backups/${backup_uuid}`,
+    { frequency, retention_days },
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para eliminar una política de backup
- * DELETE /databases/{uuid}/backups/{backup_uuid}
- */
+/** DELETE /databases/backups/{backup_uuid} */
 export async function deleteDatabaseBackupHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const { uuid } = parameters as DeleteDatabaseBackupParams;
+  const { uuid: backup_uuid } = parameters as DeleteDatabaseBackupParams;
 
-  await context.httpClient.post(`/databases/${uuid}/backups`, null, {
+  await context.httpClient.delete(`/databases/backups/${backup_uuid}`, {
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Política de backup eliminada correctamente`,
-  };
+  return { success: true, message: `Política de backup eliminada correctamente` };
 }
 
-/**
- * Handler para listar ejecuciones de backup
- * GET /backups/executions?limit=50
- */
+/** GET /databases/backup-executions?limit=N */
 export async function listBackupExecutionsHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<BackupExecutionsList> {
   const params = parameters as ListBackupExecutionsParams;
+  const queryString = `?limit=${params.limit ?? 50}`;
 
-  const queryString = `?limit=${params.limit || 50}`;
-
-  const response = await context.httpClient.get<any>(
-    `/backups/executions${queryString}`,
-    {
-      requestId: context.requestId,
-    }
+  const response = await context.httpClient.get<unknown>(
+    `/databases/backup-executions${queryString}`,
+    { requestId: context.requestId }
   );
 
-  const executions = Array.isArray(response)
-    ? response
-    : response.executions || [];
+  const executions = extractArray(response, "executions");
 
   return {
-    executions: executions.map((e: any) => ({
-      uuid: e.uuid,
-      backup_uuid: e.backup_uuid,
-      status: e.status,
-      created_at: e.created_at || new Date().toISOString(),
-      size_bytes: e.size_bytes,
+    executions: executions.map((e) => ({
+      uuid: asString(e.uuid),
+      backup_uuid: asString(e.backup_uuid),
+      status: asString(e.status),
+      created_at: asIsoDate(e.created_at),
+      size_bytes: asNumberOpt(e.size_bytes),
     })),
     total: executions.length,
   };
 }
 
-/**
- * Handler para eliminar una ejecución de backup
- * DELETE /backups/executions/{uuid}
- */
+/** DELETE /databases/backup-executions/{uuid} */
 export async function deleteBackupExecutionHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as DeleteBackupExecutionParams;
 
-  await context.httpClient.post(`/backups/executions/${uuid}`, null, {
+  await context.httpClient.delete(`/databases/backup-executions/${uuid}`, {
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Ejecución de backup ${uuid} eliminada correctamente`,
-  };
+  return { success: true, message: `Ejecución de backup ${uuid} eliminada correctamente` };
 }

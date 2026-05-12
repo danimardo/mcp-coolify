@@ -3,9 +3,9 @@
  *
  * Flujo:
  * 1. Agente invoca operación crítica (ej: delete_application)
- * 2. Servidor devuelve { requiresConfirmation: true, operationId, token }
- * 3. Agente invoca confirm_operation con token
- * 4. Servidor verifica token y ejecuta operación original
+ * 2. Servidor devuelve { requiresConfirmation: true, operationId, confirmationToken }
+ * 3. Agente invoca confirm_operation con ambos valores
+ * 4. Servidor verifica token, ejecuta la operación original y devuelve el resultado
  */
 
 import { z } from "zod";
@@ -13,22 +13,20 @@ import type { ExtendedToolContext } from "$lib/tools/types";
 import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 
-// Schema para confirmar una operación
 const ConfirmOperationSchema = z.object({
   operationId: z.string().uuid().describe("ID único de la operación a confirmar"),
-  token: z.string().uuid().describe("Token de confirmación recibido del servidor"),
+  confirmationToken: z.string().uuid().describe("Token de confirmación recibido del servidor"),
 });
 
 type ConfirmOperationParams = z.infer<typeof ConfirmOperationSchema>;
 
-// Respuesta de confirmación exitosa
 const ConfirmationSuccessSchema = z.object({
   success: z.literal(true),
   operationId: z.string().uuid(),
   message: z.string(),
+  result: z.unknown(),
 });
 
-// Respuesta de confirmación fallida
 const ConfirmationErrorSchema = z.object({
   success: z.literal(false),
   operationId: z.string().uuid(),
@@ -42,80 +40,66 @@ const ConfirmOperationResponseSchema = z.union([
 ]);
 
 /**
- * Handler para confirmar una operación crítica
+ * Handler para confirmar y ejecutar una operación crítica
  */
-export function confirmOperationHandler(
+export async function confirmOperationHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<z.infer<typeof ConfirmOperationResponseSchema>> {
-  const params = parameters as ConfirmOperationParams;
+  const { operationId, confirmationToken } = parameters as ConfirmOperationParams;
 
-  const isValid = context.confirmationFlow.verifyConfirmation(
-    params.operationId,
-    params.token
-  );
+  const resultPromise = context.confirmationFlow.executeConfirmed(operationId, confirmationToken);
 
-  if (isValid) {
-    return Promise.resolve({
-      success: true,
-      operationId: params.operationId,
-      message: "Confirmación aceptada. La operación se ejecutará.",
-    });
-  } else {
-    return Promise.resolve({
+  if (resultPromise === null) {
+    return {
       success: false,
-      operationId: params.operationId,
-      message: "Confirmación rechazada",
+      operationId,
+      message: "Token inválido o expirado. La operación no se pudo ejecutar.",
       reason: "invalid_token",
-    });
+    };
   }
+
+  const result = await resultPromise;
+  return {
+    success: true,
+    operationId,
+    message: "Operación confirmada y ejecutada exitosamente.",
+    result,
+  };
 }
 
-/**
- * Definición del tool confirm_operation
- */
 export const confirmOperationDefinition: ToolDefinition = {
   name: "confirm_operation",
   category: "confirmation",
-  description: "Confirma una operación crítica que requiere confirmación explícita",
+  description: "Confirma y ejecuta una operación crítica que requiere confirmación explícita",
   summary:
-    "Envía un token de confirmación para autorizar una operación crítica (delete, restart, etc)",
+    "Envía el token de confirmación para autorizar y ejecutar una operación crítica. Devuelve el resultado de la operación.",
   examples: [
-    'invoke("confirm_operation", {operationId: "550e8400-e29b-41d4-a716-446655440000", token: "abc123..."}) → {success: true}',
+    'invoke("confirm_operation", {operationId: "550e8400-...", confirmationToken: "abc123..."}) → {success: true, result: {...}}',
   ],
   parameters: {
     schema: ConfirmOperationSchema,
-    description:
-      "operationId y token recibidos cuando se intentó la operación crítica",
-    required: ["operationId", "token"],
+    description: "operationId y confirmationToken recibidos de la operación crítica",
+    required: ["operationId", "confirmationToken"],
   },
   response: {
     schema: ConfirmOperationResponseSchema,
-    description: "Resultado de la confirmación",
+    description: "Resultado de la confirmación y ejecución",
   },
   requiresConfirmation: false,
   readOnlyBlocks: false,
-  timeout: 5000,
+  timeout: 30000,
   tags: ["confirmation", "critical", "security"],
 };
 
-/**
- * Handler MCP para confirm_operation
- */
 export const confirmOperationTool: ToolHandler = createBaseTool(
   "confirm_operation",
   ConfirmOperationSchema,
   ConfirmOperationResponseSchema,
   confirmOperationHandler,
-  {
-    requiresConfirmation: false,
-    readOnlyBlocks: false,
-  }
+  { requiresConfirmation: false, readOnlyBlocks: false }
 );
 
-/**
- * Exportar como tool entry para registro
- */
 export const confirmationTools = [
   { definition: confirmOperationDefinition, handler: confirmOperationTool },
 ];

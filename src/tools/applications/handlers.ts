@@ -76,7 +76,7 @@ export async function getApplicationLogsHandler(
 
 /**
  * Iniciar una aplicación
- * POST /applications/{uuid}/start
+ * GET /applications/{uuid}/start
  */
 export async function startApplicationHandler(
   parameters: unknown,
@@ -84,33 +84,31 @@ export async function startApplicationHandler(
 ): Promise<ApplicationAction> {
   const { uuid, force } = parameters as StartApplicationParams;
 
-  return context.httpClient.post<ApplicationAction>(
+  return context.httpClient.get<ApplicationAction>(
     `/applications/${uuid}/start`,
-    { force },
-    { requestId: context.requestId }
+    { params: { force }, requestId: context.requestId }
   );
 }
 
 /**
  * Detener una aplicación
- * POST /applications/{uuid}/stop
+ * GET /applications/{uuid}/stop
  */
 export async function stopApplicationHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<ApplicationAction> {
-  const { uuid, force } = parameters as StopApplicationParams;
+  const { uuid } = parameters as StopApplicationParams;
 
-  return context.httpClient.post<ApplicationAction>(
+  return context.httpClient.get<ApplicationAction>(
     `/applications/${uuid}/stop`,
-    { force },
     { requestId: context.requestId }
   );
 }
 
 /**
  * Reiniciar una aplicación
- * POST /applications/{uuid}/restart
+ * GET /applications/{uuid}/restart
  */
 export async function restartApplicationHandler(
   parameters: unknown,
@@ -118,9 +116,8 @@ export async function restartApplicationHandler(
 ): Promise<ApplicationAction> {
   const { uuid, force } = parameters as RestartApplicationParams;
 
-  return context.httpClient.post<ApplicationAction>(
+  return context.httpClient.get<ApplicationAction>(
     `/applications/${uuid}/restart`,
-    { force },
-    { requestId: context.requestId }
+    { params: { force }, requestId: context.requestId }
   );
 }

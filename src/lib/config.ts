@@ -103,11 +103,11 @@ export function loadConfig(): AppConfig {
     logToFiles: process.env.LOG_TO_FILES === "false" ? false : true,
     logTimezone: process.env.LOG_TIMEZONE,
     readOnly: process.env.READ_ONLY === "true",
-    requestTimeout: process.env.REQUEST_TIMEOUT
-      ? parseInt(process.env.REQUEST_TIMEOUT, 10)
+    requestTimeout: process.env.COOLIFY_REQUEST_TIMEOUT
+      ? parseInt(process.env.COOLIFY_REQUEST_TIMEOUT, 10)
       : undefined,
-    maxRetries: process.env.MAX_RETRIES
-      ? parseInt(process.env.MAX_RETRIES, 10)
+    maxRetries: process.env.COOLIFY_MAX_RETRIES
+      ? parseInt(process.env.COOLIFY_MAX_RETRIES, 10)
       : undefined,
   };
 

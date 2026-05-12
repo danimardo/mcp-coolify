@@ -3,14 +3,14 @@
  * Tools para gestión de aplicaciones GitHub en Coolify
  *
  * Categoría: github-apps
- * Tools: list, get, create, update, delete, list_repositories, list_branches = 7 total
+ * Tools: list, create, update, delete, list_repositories, list_branches = 6 total
+ * (get_github_app eliminado: GET /github-apps/{uuid} no existe en Coolify API v4)
  */
 
 import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
 import { createBaseTool } from "$lib/tools/base-tool";
 import {
   ListGitHubAppsSchema,
-  GetGitHubAppSchema,
   CreateGitHubAppSchema,
   UpdateGitHubAppSchema,
   DeleteGitHubAppSchema,
@@ -24,7 +24,6 @@ import {
 } from "./schemas";
 import {
   listGitHubAppsHandler,
-  getGitHubAppHandler,
   createGitHubAppHandler,
   updateGitHubAppHandler,
   deleteGitHubAppHandler,
@@ -59,36 +58,6 @@ export const listGitHubAppsTool: ToolHandler = createBaseTool(
   ListGitHubAppsSchema,
   GitHubAppsListSchema,
   listGitHubAppsHandler,
-  { requiresConfirmation: false, readOnlyBlocks: false }
-);
-
-// === get_github_app ===
-
-export const getGitHubAppDefinition: ToolDefinition = {
-  name: "get_github_app",
-  category: "github-apps",
-  description: "Obtener detalles de una aplicación GitHub",
-  summary: "Devuelve información de la aplicación GitHub",
-  examples: ['invoke("get_github_app", {uuid: "..."}) → {uuid: "...", name: "...", organization: "..."}'],
-  parameters: {
-    schema: GetGitHubAppSchema,
-    description: "UUID de la aplicación",
-  },
-  response: {
-    schema: GitHubAppDetailSchema,
-    description: "Detalles de la aplicación",
-  },
-  requiresConfirmation: false,
-  readOnlyBlocks: false,
-  timeout: 10000,
-  tags: ["github-apps", "read"],
-};
-
-export const getGitHubAppTool: ToolHandler = createBaseTool(
-  "get_github_app",
-  GetGitHubAppSchema,
-  GitHubAppDetailSchema,
-  getGitHubAppHandler,
   { requiresConfirmation: false, readOnlyBlocks: false }
 );
 
@@ -245,12 +214,9 @@ export const listBranchesTool: ToolHandler = createBaseTool(
 
 // === Colección de tools ===
 
-/**
- * Todos los tools de la categoría GitHub Apps (7 total)
- */
+/** Todos los tools de la categoría GitHub Apps (6 total) */
 export const githubAppsTools = [
   { definition: listGitHubAppsDefinition, handler: listGitHubAppsTool },
-  { definition: getGitHubAppDefinition, handler: getGitHubAppTool },
   { definition: createGitHubAppDefinition, handler: createGitHubAppTool },
   { definition: updateGitHubAppDefinition, handler: updateGitHubAppTool },
   { definition: deleteGitHubAppDefinition, handler: deleteGitHubAppTool },

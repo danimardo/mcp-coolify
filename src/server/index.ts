@@ -17,7 +17,7 @@ import { initializeLogger, getLogger } from "../lib/logging/index.js";
 import { createHttpClient } from "../lib/http-client.js";
 import { createToolRegistry } from "../lib/tools/registry.js";
 import { registerAllTools } from "../tools/index.js";
-import { ConfirmationFlow, requiresConfirmation, getConfirmationReason } from "../lib/confirmation/flow.js";
+import { ConfirmationFlow, getConfirmationReason } from "../lib/confirmation/flow.js";
 import { confirmationTools } from "../tools/confirmation/index.js";
 import type { ExtendedToolContext } from "../lib/tools/types.js";
 import type { Logger } from "../lib/logging/types.js";
@@ -183,8 +183,8 @@ async function main(): Promise<void> {
           const requestId = randomUUID();
           const context = createToolContext(requestId, logger, config, httpClient, confirmationFlow);
 
-          // Check if tool requires confirmation
-          if (requiresConfirmation(def.name)) {
+          // Check if tool requires confirmation (using definition flag, not hardcoded list)
+          if (def.requiresConfirmation === true) {
             const operationId = randomUUID();
             const confirmationToken = confirmationFlow.requestConfirmation({
               operationId,
@@ -194,14 +194,25 @@ async function main(): Promise<void> {
               requiredConfirmation: true,
             });
 
-            // Return confirmation required response
+            // Store the operation so confirm_operation can execute it later.
+            // Cast avoids circular dep: flow.ts can't import ExtendedToolContext (types.ts imports flow.ts).
+            // Safe at runtime: context passed here is always ExtendedToolContext.
+            confirmationFlow.storeOperation(
+              operationId,
+              confirmationToken,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- circular dep prevents proper typing
+              entry.handler as (params: unknown, ctx: unknown) => Promise<unknown>,
+              params as Record<string, unknown>,
+              context
+            );
+
             const confirmationResponse = {
               requiresConfirmation: true,
               operationId,
               confirmationToken,
               operation: def.name,
               reason: getConfirmationReason(def.name),
-              message: `La operación '${def.name}' requiere confirmación explícita. Use confirm_operation con el token proporcionado.`,
+              message: `La operación '${def.name}' requiere confirmación explícita. Use 'confirm_operation' con operationId y confirmationToken.`,
             };
 
             const text = JSON.stringify(confirmationResponse, null, 2);

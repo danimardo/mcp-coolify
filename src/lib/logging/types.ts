@@ -56,6 +56,7 @@ export type EventName =
 
   // Registry events
   | "tool.registered"
+  | "mcp.tools.registered"
 
   // Error events
   | "error.unexpected"

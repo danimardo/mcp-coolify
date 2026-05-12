@@ -3,7 +3,8 @@
  * Tools para gestión de servicios (contenedores) en Coolify
  *
  * Categoría: Services
- * Tools: list, get, create, update, delete, start, stop, restart, logs, scale, env, restart_container, metrics = 13 total
+ * Tools: list, get, create, update, delete, start, stop, restart, update_env = 9 total
+ * (scale, logs, restart_container, metrics eliminados: endpoints no existen en Coolify API v4)
  */
 
 import type { ToolDefinition, ToolHandler } from "$lib/tools/types";
@@ -17,15 +18,9 @@ import {
   StartServiceSchema,
   StopServiceSchema,
   RestartServiceSchema,
-  GetServiceLogsSchema,
-  ScaleServiceSchema,
   UpdateServiceEnvSchema,
-  RestartServiceContainerSchema,
-  GetServiceMetricsSchema,
   ServicesListSchema,
   ServiceDetailSchema,
-  ServiceLogsSchema,
-  ServiceMetricsSchema,
   ActionResponseSchema,
   CreateServiceResponseSchema,
 } from "./schemas";
@@ -38,11 +33,7 @@ import {
   startServiceHandler,
   stopServiceHandler,
   restartServiceHandler,
-  getServiceLogsHandler,
-  scaleServiceHandler,
   updateServiceEnvHandler,
-  restartServiceContainerHandler,
-  getServiceMetricsHandler,
 } from "./handlers";
 
 // === list_services ===
@@ -331,78 +322,6 @@ export const restartServiceTool: ToolHandler = createBaseTool(
   }
 );
 
-// === get_service_logs ===
-
-export const getServiceLogsDefinition: ToolDefinition = {
-  name: "get_service_logs",
-  category: "services",
-  description: "Obtener logs de un servicio",
-  summary: "Devuelve las últimas líneas de logs del servicio",
-  examples: [
-    'invoke("get_service_logs", {uuid: "...", lines: 50}) → {logs: [...], total_lines: 50}',
-  ],
-  parameters: {
-    schema: GetServiceLogsSchema,
-    required: ["uuid"],
-    description: "UUID y número de líneas",
-  },
-  response: {
-    schema: ServiceLogsSchema,
-    description: "Logs del servicio",
-  },
-  requiresConfirmation: false,
-  readOnlyBlocks: false,
-  timeout: 10000,
-  tags: ["services", "logs", "read"],
-};
-
-export const getServiceLogsTool: ToolHandler = createBaseTool(
-  "get_service_logs",
-  GetServiceLogsSchema,
-  ServiceLogsSchema,
-  getServiceLogsHandler,
-  {
-    requiresConfirmation: false,
-    readOnlyBlocks: false,
-  }
-);
-
-// === scale_service ===
-
-export const scaleServiceDefinition: ToolDefinition = {
-  name: "scale_service",
-  category: "services",
-  description: "Escalar número de réplicas de un servicio",
-  summary: "Aumenta o disminuye el número de instancias. Requiere confirmación.",
-  examples: [
-    'invoke("scale_service", {uuid: "...", replicas: 3}) → {success: true}',
-  ],
-  parameters: {
-    schema: ScaleServiceSchema,
-    required: ["uuid", "replicas"],
-    description: "UUID y número de réplicas",
-  },
-  response: {
-    schema: ActionResponseSchema,
-    description: "Confirmación de escalado",
-  },
-  requiresConfirmation: true,
-  readOnlyBlocks: true,
-  timeout: 15000,
-  tags: ["services", "scale", "write"],
-};
-
-export const scaleServiceTool: ToolHandler = createBaseTool(
-  "scale_service",
-  ScaleServiceSchema,
-  ActionResponseSchema,
-  scaleServiceHandler,
-  {
-    requiresConfirmation: true,
-    readOnlyBlocks: true,
-  }
-);
-
 // === update_service_env ===
 
 export const updateServiceEnvDefinition: ToolDefinition = {
@@ -439,83 +358,9 @@ export const updateServiceEnvTool: ToolHandler = createBaseTool(
   }
 );
 
-// === restart_service_container ===
-
-export const restartServiceContainerDefinition: ToolDefinition = {
-  name: "restart_service_container",
-  category: "services",
-  description: "Reiniciar un contenedor específico",
-  summary: "Reinicia un contenedor individual sin afectar otros. Requiere confirmación.",
-  examples: [
-    'invoke("restart_service_container", {uuid: "...", container_id: "abc123"}) → {success: true}',
-  ],
-  parameters: {
-    schema: RestartServiceContainerSchema,
-    required: ["uuid"],
-    description: "UUID del servicio e ID opcional del contenedor",
-  },
-  response: {
-    schema: ActionResponseSchema,
-    description: "Contenedor reiniciado",
-  },
-  requiresConfirmation: true,
-  readOnlyBlocks: true,
-  timeout: 15000,
-  tags: ["services", "containers", "write"],
-};
-
-export const restartServiceContainerTool: ToolHandler = createBaseTool(
-  "restart_service_container",
-  RestartServiceContainerSchema,
-  ActionResponseSchema,
-  restartServiceContainerHandler,
-  {
-    requiresConfirmation: true,
-    readOnlyBlocks: true,
-  }
-);
-
-// === get_service_metrics ===
-
-export const getServiceMetricsDefinition: ToolDefinition = {
-  name: "get_service_metrics",
-  category: "services",
-  description: "Obtener métricas de rendimiento del servicio",
-  summary: "Devuelve CPU, memoria, red y disco actuales",
-  examples: [
-    'invoke("get_service_metrics", {uuid: "...", metric_type: "all"}) → {cpu_percent: 45.2, memory_bytes: 512000000, ...}',
-  ],
-  parameters: {
-    schema: GetServiceMetricsSchema,
-    required: ["uuid"],
-    description: "UUID y tipo de métrica",
-  },
-  response: {
-    schema: ServiceMetricsSchema,
-    description: "Métricas del servicio",
-  },
-  requiresConfirmation: false,
-  readOnlyBlocks: false,
-  timeout: 10000,
-  tags: ["services", "metrics", "read"],
-};
-
-export const getServiceMetricsTool: ToolHandler = createBaseTool(
-  "get_service_metrics",
-  GetServiceMetricsSchema,
-  ServiceMetricsSchema,
-  getServiceMetricsHandler,
-  {
-    requiresConfirmation: false,
-    readOnlyBlocks: false,
-  }
-);
-
 // === Colección de tools ===
 
-/**
- * Todos los tools de la categoría Services (13 total)
- */
+/** Todos los tools de la categoría Services (9 total) */
 export const servicesTools = [
   { definition: listServicesDefinition, handler: listServicesTool },
   { definition: getServiceDefinition, handler: getServiceTool },
@@ -525,9 +370,5 @@ export const servicesTools = [
   { definition: startServiceDefinition, handler: startServiceTool },
   { definition: stopServiceDefinition, handler: stopServiceTool },
   { definition: restartServiceDefinition, handler: restartServiceTool },
-  { definition: getServiceLogsDefinition, handler: getServiceLogsTool },
-  { definition: scaleServiceDefinition, handler: scaleServiceTool },
   { definition: updateServiceEnvDefinition, handler: updateServiceEnvTool },
-  { definition: restartServiceContainerDefinition, handler: restartServiceContainerTool },
-  { definition: getServiceMetricsDefinition, handler: getServiceMetricsTool },
 ];

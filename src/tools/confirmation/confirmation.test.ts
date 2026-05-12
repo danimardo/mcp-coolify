@@ -34,7 +34,7 @@ describe("Confirmation Tool", () => {
     const invalidToken = randomUUID();
 
     const result = (await confirmOperationHandler(
-      { operationId, token: invalidToken },
+      { operationId, confirmationToken: invalidToken },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 
@@ -52,8 +52,12 @@ describe("Confirmation Tool", () => {
       requiredConfirmation: true,
     });
 
+    // Almacenar handler mock para ejecución diferida
+    const mockHandler = (_p: unknown, _c: unknown) => Promise.resolve({ deleted: true });
+    confirmationFlow.storeOperation(operationId, token, mockHandler, { uuid: "test-uuid" }, context);
+
     const result = (await confirmOperationHandler(
-      { operationId, token },
+      { operationId, confirmationToken: token },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 
@@ -64,7 +68,6 @@ describe("Confirmation Tool", () => {
   it("debería rechazar token después de expiración", async () => {
     const operationId = randomUUID();
 
-    // Crear token e inmediatamente verificar sin esperar
     const token = confirmationFlow.requestConfirmation({
       operationId,
       operationName: "delete_application",
@@ -73,18 +76,22 @@ describe("Confirmation Tool", () => {
       requiredConfirmation: true,
     });
 
+    // Almacenar handler mock para ejecución diferida
+    const mockHandler = (_p: unknown, _c: unknown) => Promise.resolve({ deleted: true });
+    confirmationFlow.storeOperation(operationId, token, mockHandler, { uuid: "test-uuid" }, context);
+
     // Token debería ser válido inicialmente
     const initialResult = (await confirmOperationHandler(
-      { operationId, token },
+      { operationId, confirmationToken: token },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 
     expect(initialResult.success).toBe(true);
 
     // Intentar usar el mismo token nuevamente debería fallar
-    // (token ya fue consumido)
+    // (operación ya fue consumida)
     const retryResult = (await confirmOperationHandler(
-      { operationId, token },
+      { operationId, confirmationToken: token },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 
@@ -105,7 +112,7 @@ describe("Confirmation Tool", () => {
 
     // Intentar usar token de operationId1 con operationId2
     const result = (await confirmOperationHandler(
-      { operationId: operationId2, token },
+      { operationId: operationId2, confirmationToken: token },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 
@@ -118,7 +125,7 @@ describe("Confirmation Tool", () => {
     const invalidToken = randomUUID();
 
     const result = (await confirmOperationHandler(
-      { operationId, token: invalidToken },
+      { operationId, confirmationToken: invalidToken },
       context as ExtendedToolContext
     )) as Record<string, unknown>;
 

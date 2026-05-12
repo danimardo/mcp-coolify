@@ -1,11 +1,9 @@
 /**
  * Handlers para tools del dominio Projects
- * Implementan la lógica de negocio y llamadas a la API de Coolify
- *
- * Categoría: Projects
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import { extractArray, asRecord, asString, asStringOpt, asIsoDate } from "$lib/tools/response-helpers";
 import type {
   ListProjectsParams,
   GetProjectParams,
@@ -15,10 +13,7 @@ import type {
   ListProjectEnvironmentsParams,
 } from "./schemas";
 
-/**
- * Handler para listar proyectos
- * GET /projects?team_uuid=&limit=&skip=
- */
+/** GET /projects */
 export async function listProjectsHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -27,127 +22,100 @@ export async function listProjectsHandler(
   const queryParams: Record<string, string> = {};
 
   if (params.team_uuid) queryParams.team_uuid = params.team_uuid;
-  if (params.limit !== undefined)
-    queryParams.limit = String(params.limit);
-  if (params.skip !== undefined)
-    queryParams.skip = String(params.skip);
+  if (params.limit !== undefined) queryParams.limit = String(params.limit);
+  if (params.skip !== undefined) queryParams.skip = String(params.skip);
 
   const queryString = new URLSearchParams(queryParams).toString();
   const path = queryString ? `/projects?${queryString}` : "/projects";
 
-  const response = await context.httpClient.get(path, {
+  const response = await context.httpClient.get<unknown>(path, {
     requestId: context.requestId,
   });
 
   return response;
 }
 
-/**
- * Handler para obtener un proyecto por UUID
- * GET /projects/{uuid}
- */
+/** GET /projects/{uuid} */
 export async function getProjectHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const params = parameters as GetProjectParams;
+  const { uuid } = parameters as GetProjectParams;
 
-  const response = await context.httpClient.get(
-    `/projects/${params.uuid}`,
-    {
-      requestId: context.requestId,
-    }
-  );
+  const response = await context.httpClient.get<unknown>(`/projects/${uuid}`, {
+    requestId: context.requestId,
+  });
 
   return response;
 }
 
-/**
- * Handler para crear un nuevo proyecto
- * POST /projects { name, description }
- */
+/** POST /projects */
 export async function createProjectHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const params = parameters as CreateProjectParams;
 
-  const response = await context.httpClient.post("/projects", params, {
+  const response = await context.httpClient.post<unknown>("/projects", params, {
     requestId: context.requestId,
   });
 
   return response;
 }
 
-/**
- * Handler para actualizar un proyecto
- * PATCH /projects/{uuid}
- */
+/** PATCH /projects/{uuid} */
 export async function updateProjectHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid, name, description } = parameters as UpdateProjectParams;
 
-  const response = await context.httpClient.post(
+  const response = await context.httpClient.patch<unknown>(
     `/projects/${uuid}`,
-    {
-      name,
-      description,
-    },
-    {
-      requestId: context.requestId,
-    }
+    { name, description },
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para eliminar un proyecto
- * DELETE /projects/{uuid}
- */
+/** DELETE /projects/{uuid} */
 export async function deleteProjectHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as DeleteProjectParams;
 
-  await context.httpClient.post(`/projects/${uuid}`, null, {
+  await context.httpClient.delete(`/projects/${uuid}`, {
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Proyecto ${uuid} eliminado correctamente`,
-  };
+  return { success: true, message: `Proyecto ${uuid} eliminado correctamente` };
 }
 
-/**
- * Handler para listar entornos de un proyecto
- * GET /projects/{uuid}/environments
- */
+/** GET /projects/{uuid}/environments */
 export async function listProjectEnvironmentsHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
   const { uuid } = parameters as ListProjectEnvironmentsParams;
 
-  const response = await context.httpClient.get<any>(
+  const response = await context.httpClient.get<unknown>(
     `/projects/${uuid}/environments`,
-    {
-      requestId: context.requestId,
-    }
+    { requestId: context.requestId }
   );
 
-  const environments = Array.isArray(response) ? response : response.environments || [];
+  const environments = extractArray(response, "environments");
 
   return {
-    environments: environments.map((e: any) => ({
-      uuid: e.uuid,
-      name: e.name,
-      created_at: e.created_at,
-    })),
+    environments: environments.map((e) => {
+      const env = asRecord(e);
+      return {
+        uuid: asStringOpt(env.uuid),
+        name: asString(env.name),
+        created_at: asIsoDate(env.created_at),
+      };
+    }),
     total: environments.length,
   };
 }

@@ -1,136 +1,103 @@
 /**
  * Handlers para herramientas de Ambientes
- * Implementan la lógica de negocio y llamadas a la API de Coolify
- * 4 operaciones: listar, obtener, crear, actualizar, eliminar ambientes
+ * Endpoints: /projects/{project_uuid}/environments
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import { extractArray, asRecord, asString, asStringOpt, asIsoDate } from "$lib/tools/response-helpers";
 import type {
   ListEnvironmentsParams,
   GetEnvironmentParams,
   CreateEnvironmentParams,
-  UpdateEnvironmentParams,
   DeleteEnvironmentParams,
   EnvironmentsList,
   EnvironmentDetail,
 } from "./schemas";
 
-/**
- * Handler para listar ambientes
- * GET /environments?project_uuid=&limit=&skip=
- */
+/** GET /projects/{project_uuid}/environments */
 export async function listEnvironmentsHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<EnvironmentsList> {
-  const params = parameters as ListEnvironmentsParams;
-  const queryParams: Record<string, string> = {};
+  const { project_uuid } = parameters as ListEnvironmentsParams;
 
-  if (params.project_uuid) queryParams.project_uuid = params.project_uuid;
-  if (params.limit !== undefined) queryParams.limit = String(params.limit);
-  if (params.skip !== undefined) queryParams.skip = String(params.skip);
+  const response = await context.httpClient.get<unknown>(
+    `/projects/${project_uuid}/environments`,
+    { requestId: context.requestId }
+  );
 
-  const queryString = new URLSearchParams(queryParams).toString();
-  const path = queryString ? `/environments?${queryString}` : "/environments";
-
-  const response = await context.httpClient.get<any>(path, {
-    requestId: context.requestId,
-  });
-
-  const environments = Array.isArray(response) ? response : response.environments || [];
+  const environments = extractArray(response, "environments");
 
   return {
-    environments: environments.map((e: any) => ({
-      uuid: e.uuid,
-      name: e.name,
-      project_uuid: e.project_uuid,
-      created_at: e.created_at || new Date().toISOString(),
-    })),
+    environments: environments.map((e) => {
+      const env = asRecord(e);
+      return {
+        uuid: asStringOpt(env.uuid),
+        name: asString(env.name),
+        project_uuid: asStringOpt(env.project_uuid),
+        created_at: asIsoDate(env.created_at),
+      };
+    }),
     total: environments.length,
   };
 }
 
-/**
- * Handler para obtener un ambiente específico
- * GET /environments/{uuid}
- */
+/** GET /projects/{project_uuid}/{environment_name_or_uuid} */
 export async function getEnvironmentHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<EnvironmentDetail> {
-  const params = parameters as GetEnvironmentParams;
+  const { project_uuid, environment_name_or_uuid } = parameters as GetEnvironmentParams;
 
-  const response = await context.httpClient.get<EnvironmentDetail>(
-    `/environments/${params.uuid}`,
-    {
-      requestId: context.requestId,
-    }
+  const response = await context.httpClient.get<unknown>(
+    `/projects/${project_uuid}/${environment_name_or_uuid}`,
+    { requestId: context.requestId }
   );
 
-  return response;
+  const env = asRecord(response);
+  return {
+    uuid: asStringOpt(env.uuid),
+    name: asString(env.name),
+    project_uuid: asStringOpt(env.project_uuid),
+    created_at: asIsoDate(env.created_at),
+    description: asStringOpt(env.description),
+  };
 }
 
-/**
- * Handler para crear un ambiente
- * POST /environments { project_uuid, name, description }
- */
+/** POST /projects/{project_uuid}/environments */
 export async function createEnvironmentHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<EnvironmentDetail> {
-  const params = parameters as CreateEnvironmentParams;
+  const { project_uuid, name, description } = parameters as CreateEnvironmentParams;
 
-  const response = await context.httpClient.post<EnvironmentDetail>(
-    "/environments",
-    params,
-    {
-      requestId: context.requestId,
-    }
+  const response = await context.httpClient.post<unknown>(
+    `/projects/${project_uuid}/environments`,
+    { name, description },
+    { requestId: context.requestId }
   );
 
-  return response;
+  const env = asRecord(response);
+  return {
+    uuid: asStringOpt(env.uuid),
+    name: asString(env.name, name),
+    project_uuid: asStringOpt(env.project_uuid) ?? project_uuid,
+    created_at: asIsoDate(env.created_at),
+    description: asStringOpt(env.description),
+  };
 }
 
-/**
- * Handler para actualizar un ambiente
- * PATCH /environments/{uuid}
- */
-export async function updateEnvironmentHandler(
-  parameters: unknown,
-  context: ExtendedToolContext
-): Promise<EnvironmentDetail> {
-  const { uuid, name, description } = parameters as UpdateEnvironmentParams;
-
-  const response = await context.httpClient.post<EnvironmentDetail>(
-    `/environments/${uuid}`,
-    {
-      name,
-      description,
-    },
-    {
-      requestId: context.requestId,
-    }
-  );
-
-  return response;
-}
-
-/**
- * Handler para eliminar un ambiente
- * DELETE /environments/{uuid}
- */
+/** DELETE /projects/{project_uuid}/environments/{environment_name_or_uuid} */
 export async function deleteEnvironmentHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const { uuid } = parameters as DeleteEnvironmentParams;
+  const { project_uuid, environment_name_or_uuid } = parameters as DeleteEnvironmentParams;
 
-  await context.httpClient.post(`/environments/${uuid}`, null, {
-    requestId: context.requestId,
-  });
+  await context.httpClient.delete(
+    `/projects/${project_uuid}/environments/${environment_name_or_uuid}`,
+    { requestId: context.requestId }
+  );
 
-  return {
-    success: true,
-    message: `Ambiente ${uuid} eliminado correctamente`,
-  };
+  return { success: true, message: `Ambiente ${environment_name_or_uuid} eliminado correctamente` };
 }

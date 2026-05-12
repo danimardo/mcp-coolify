@@ -1,9 +1,9 @@
 /**
  * Handlers para herramientas de Private Keys
- * Implementan la lógica de negocio y llamadas a la API de Coolify
  */
 
 import type { ExtendedToolContext } from "$lib/tools/types";
+import { extractArray, asString, asStringOpt, asIsoDate } from "$lib/tools/response-helpers";
 import type {
   ListPrivateKeysParams,
   GetPrivateKeyParams,
@@ -14,10 +14,7 @@ import type {
   PrivateKeyDetail,
 } from "./schemas";
 
-/**
- * Handler para listar claves privadas
- * GET /private-keys?limit=&skip=
- */
+/** GET /private-keys */
 export async function listPrivateKeysHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -25,55 +22,45 @@ export async function listPrivateKeysHandler(
   const params = parameters as ListPrivateKeysParams;
 
   const queryParams = new URLSearchParams({
-    limit: String(params.limit || 50),
-    skip: String(params.skip || 0),
+    limit: String(params.limit ?? 50),
+    skip: String(params.skip ?? 0),
   });
 
-  const response = await context.httpClient.get<any>(
+  const response = await context.httpClient.get<unknown>(
     `/private-keys?${queryParams.toString()}`,
-    {
-      requestId: context.requestId,
-    }
+    { requestId: context.requestId }
   );
 
-  const keys = Array.isArray(response) ? response : response.keys || [];
+  const keys = extractArray(response, "keys");
 
   return {
-    keys: keys.map((k: any) => ({
-      uuid: k.uuid,
-      name: k.name,
-      description: k.description,
-      fingerprint: k.fingerprint,
-      created_at: k.created_at || new Date().toISOString(),
+    keys: keys.map((k) => ({
+      uuid: asString(k.uuid),
+      name: asString(k.name),
+      description: asStringOpt(k.description),
+      fingerprint: asStringOpt(k.fingerprint),
+      created_at: asIsoDate(k.created_at),
     })),
     total: keys.length,
   };
 }
 
-/**
- * Handler para obtener una clave privada
- * GET /private-keys/{uuid}
- */
+/** GET /private-keys/{uuid} */
 export async function getPrivateKeyHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<PrivateKeyDetail> {
-  const params = parameters as GetPrivateKeyParams;
+  const { uuid } = parameters as GetPrivateKeyParams;
 
   const response = await context.httpClient.get<PrivateKeyDetail>(
-    `/private-keys/${params.uuid}`,
-    {
-      requestId: context.requestId,
-    }
+    `/private-keys/${uuid}`,
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para crear una clave privada
- * POST /private-keys { name, description, private_key }
- */
+/** POST /private-keys */
 export async function createPrivateKeyHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -83,40 +70,29 @@ export async function createPrivateKeyHandler(
   const response = await context.httpClient.post<PrivateKeyDetail>(
     "/private-keys",
     params,
-    {
-      requestId: context.requestId,
-    }
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para actualizar una clave privada
- * PATCH /private-keys/{uuid}
- */
+/** PATCH /private-keys/{uuid} */
 export async function updatePrivateKeyHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<PrivateKeyDetail> {
-  const params = parameters as UpdatePrivateKeyParams;
-  const { uuid, ...updateData } = params;
+  const { uuid, ...updateData } = parameters as UpdatePrivateKeyParams;
 
   const response = await context.httpClient.patch<PrivateKeyDetail>(
     `/private-keys/${uuid}`,
     updateData,
-    {
-      requestId: context.requestId,
-    }
+    { requestId: context.requestId }
   );
 
   return response;
 }
 
-/**
- * Handler para eliminar una clave privada
- * DELETE /private-keys/{uuid}
- */
+/** DELETE /private-keys/{uuid} */
 export async function deletePrivateKeyHandler(
   parameters: unknown,
   context: ExtendedToolContext
@@ -127,8 +103,5 @@ export async function deletePrivateKeyHandler(
     requestId: context.requestId,
   });
 
-  return {
-    success: true,
-    message: `Clave privada ${uuid} eliminada correctamente`,
-  };
+  return { success: true, message: `Clave privada ${uuid} eliminada correctamente` };
 }

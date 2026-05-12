@@ -162,9 +162,9 @@ describe("Confirmation Flow", () => {
 
 describe("requiresConfirmation", () => {
   it("should return true for destructive operations", () => {
-    expect(requiresConfirmation("delete_team")).toBe(true);
     expect(requiresConfirmation("delete_project")).toBe(true);
     expect(requiresConfirmation("delete_application")).toBe(true);
+    expect(requiresConfirmation("delete_database")).toBe(true);
   });
 
   it("should return true for lifecycle operations", () => {
@@ -174,8 +174,8 @@ describe("requiresConfirmation", () => {
   });
 
   it("should return true for dangerous operations", () => {
-    expect(requiresConfirmation("install_docker")).toBe(true);
-    expect(requiresConfirmation("cleanup_server")).toBe(true);
+    expect(requiresConfirmation("trigger_deployment")).toBe(true);
+    expect(requiresConfirmation("create_private_key")).toBe(true);
   });
 
   it("should return false for read-only operations", () => {
@@ -187,17 +187,17 @@ describe("requiresConfirmation", () => {
 
 describe("getConfirmationReason", () => {
   it("should provide reason for deletion operations", () => {
-    const reason = getConfirmationReason("delete_team");
-    expect(reason).toContain("Destructive");
+    const reason = getConfirmationReason("delete_application");
+    expect(reason).toContain("destructiva");
   });
 
   it("should provide reason for lifecycle operations", () => {
     const reason = getConfirmationReason("restart_application");
-    expect(reason).toContain("application");
+    expect(reason).toContain("aplicación");
   });
 
   it("should provide generic reason for unknown operations", () => {
     const reason = getConfirmationReason("unknown_operation");
-    expect(reason).toBe("Operation requires confirmation");
+    expect(reason).toBe("Operación que requiere confirmación explícita");
   });
 });
