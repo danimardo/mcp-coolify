@@ -25,6 +25,7 @@ export type ToolCategory =
   | "monitoring"
   | "environments"
   | "gits"
+  | "registries"
   | "private-keys"
   | "github-apps"
   | "cloud-tokens"
