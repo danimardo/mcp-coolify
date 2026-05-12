@@ -44,7 +44,7 @@ const ConfirmOperationResponseSchema = z.union([
 /**
  * Handler para confirmar una operación crítica
  */
-function confirmOperationHandler(
+export function confirmOperationHandler(
   parameters: unknown,
   context: ExtendedToolContext
 ): Promise<z.infer<typeof ConfirmOperationResponseSchema>> {
