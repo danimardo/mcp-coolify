@@ -37,9 +37,9 @@ export const validateTokenDefinition: ToolDefinition = {
   name: "validate_token",
   category: "default",
   description: "Validate Coolify API token and check scopes",
-  summary: "Verifies token validity, scopes, and expiration",
+  summary: "Verifica que el token puede autenticarse contra la API de Coolify",
   examples: [
-    'invoke("validate_token", {}) → {valid: true, scopes: ["read", "write"], expiresAt: "2026-12-31T23:59:59Z"}',
+    'invoke("validate_token", {}) → {valid: true}',
   ],
   parameters: {
     schema: parametersSchema,
@@ -62,12 +62,13 @@ async function validateTokenHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  // Call Coolify API to validate current token
-  const response = await context.httpClient.get("/auth/validate", {
-    requestId: context.requestId,
-  });
-
-  return response;
+  // Validate token by calling an authenticated endpoint; /version is the simplest
+  try {
+    await context.httpClient.get<unknown>("/version", { requestId: context.requestId });
+    return { valid: true };
+  } catch {
+    return { valid: false };
+  }
 }
 
 /**

@@ -21,13 +21,7 @@ const parametersSchema = z.object({}).strict();
  * Tool response
  */
 const responseSchema = z.object({
-  version: z.string().describe("Coolify version"),
-  environment: z.enum(["development", "production"]),
-  features: z
-    .array(z.string())
-    .describe("Available features/capabilities"),
-  timezone: z.string().optional(),
-  apiVersion: z.string().optional(),
+  version: z.string().describe("Coolify version string"),
 });
 
 /**
@@ -37,9 +31,9 @@ export const getInfoDefinition: ToolDefinition = {
   name: "get_info",
   category: "default",
   description: "Get Coolify server information and features",
-  summary: "Returns version, environment, and available features",
+  summary: "Returns the Coolify server version string",
   examples: [
-    'invoke("get_info", {}) → {version: "4.0.0", environment: "production", features: ["docker", "git", ...]}',
+    'invoke("get_info", {}) → {version: "4.0.0-beta.384"}',
   ],
   parameters: {
     schema: parametersSchema,
@@ -62,12 +56,12 @@ async function getInfoHandler(
   _parameters: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  // Call Coolify API info endpoint
-  const response = await context.httpClient.get("/info", {
+  // GET /version returns a plain version string
+  const raw = await context.httpClient.get<unknown>("/version", {
     requestId: context.requestId,
   });
-
-  return response;
+  const version = typeof raw === "string" ? raw : JSON.stringify(raw);
+  return { version };
 }
 
 /**

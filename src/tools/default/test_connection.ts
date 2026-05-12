@@ -92,9 +92,9 @@ async function testConnectionHandler(
       issues.push("Cannot reach Coolify endpoint");
     }
 
-    // Check 2: Token validity
+    // Check 2: Token validity — GET /version requires a valid bearer token
     try {
-      await context.httpClient.get("/auth/validate", {
+      await context.httpClient.get("/version", {
         requestId: context.requestId,
       });
       checks.token_valid = true;
