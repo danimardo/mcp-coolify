@@ -20,7 +20,7 @@ const configSchema = z.object({
   coolifyToken: z
     .string()
     .min(1, "COOLIFY_TOKEN is required")
-    .regex(/^tr_/, "COOLIFY_TOKEN must start with 'tr_'")
+    .regex(/^(tr_|[0-9]+\|)/, "COOLIFY_TOKEN debe ser un token válido (formato tr_* o [número]|*)")
     .describe("Coolify API authentication token (Bearer token)"),
 
   validateTokenOnStartup: z
