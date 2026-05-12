@@ -19,6 +19,12 @@ import { privateKeysTools } from "./private-keys/index";
 import { githubAppsTools } from "./github-apps/index";
 import { cloudTokensTools } from "./cloud-tokens/index";
 import { hetznerTools } from "./hetzner/index";
+import { monitoringTools } from "./monitoring/index";
+import { environmentsTools } from "./environments/index";
+import { gitsTools } from "./gits/index";
+import { registriesTools } from "./registries/index";
+import { networksTools } from "./networks/index";
+import { webhooksTools } from "./webhooks/index";
 
 /** Todas las categorías de tools agregadas */
 const allToolEntries: { definition: ToolDefinition; handler: ToolHandler }[] = [
@@ -35,6 +41,12 @@ const allToolEntries: { definition: ToolDefinition; handler: ToolHandler }[] = [
   ...githubAppsTools,
   ...cloudTokensTools,
   ...hetznerTools,
+  ...monitoringTools,
+  ...environmentsTools,
+  ...gitsTools,
+  ...registriesTools,
+  ...networksTools,
+  ...webhooksTools,
   // Confirmation tools are registered separately in server initialization
 ];
 
