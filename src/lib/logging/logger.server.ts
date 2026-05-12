@@ -37,21 +37,19 @@ export function initializeLogger(config: {
     });
   }
 
-  // Create Pino instance (stdout + file transports)
-  const pinoLogger = pino(
-    {
-      level,
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: nodeEnv === "development",
-          translateTime: "SYS:HH:MM:ss",
-          ignore: "pid,hostname",
-        },
+  // Create Pino instance with pino-pretty transport for stdout
+  // Note: do NOT pass a second destination stream when using transport — pino ignores it
+  const pinoLogger = pino({
+    level,
+    transport: {
+      target: "pino-pretty",
+      options: {
+        colorize: nodeEnv === "development",
+        translateTime: "SYS:HH:MM:ss",
+        ignore: "pid,hostname",
       },
     },
-    pino.destination()
-  );
+  });
 
   class PinoLogger implements Logger {
     private baseContext: Record<string, unknown> = {};
