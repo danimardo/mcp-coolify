@@ -96,6 +96,7 @@ export class ToolRegistryImpl implements ToolRegistry {
       "github-apps": 0,
       "cloud-tokens": 0,
       hetzner: 0,
+      confirmation: 0,
     };
 
     for (const [category, tools] of this.byCategory.entries()) {

@@ -35,6 +35,7 @@ const allToolEntries: { definition: ToolDefinition; handler: ToolHandler }[] = [
   ...githubAppsTools,
   ...cloudTokensTools,
   ...hetznerTools,
+  // Confirmation tools are registered separately in server initialization
 ];
 
 /**

@@ -16,6 +16,8 @@ import { initializeLogger, getLogger } from "../lib/logging/index.js";
 import { createHttpClient } from "../lib/http-client.js";
 import { createToolRegistry } from "../lib/tools/registry.js";
 import { registerAllTools } from "../tools/index.js";
+import { ConfirmationFlow, requiresConfirmation, getConfirmationReason } from "../lib/confirmation/flow.js";
+import { confirmationTools } from "../tools/confirmation/index.js";
 import type { ExtendedToolContext } from "../lib/tools/types.js";
 import type { Logger } from "../lib/logging/types.js";
 
@@ -26,7 +28,8 @@ function createToolContext(
   requestId: string,
   logger: Logger,
   config: AppConfig,
-  httpClient: ReturnType<typeof createHttpClient>
+  httpClient: ReturnType<typeof createHttpClient>,
+  confirmationFlow: ConfirmationFlow
 ): ExtendedToolContext {
   return {
     requestId,
@@ -59,6 +62,7 @@ function createToolContext(
           requestId,
         }),
     },
+    confirmationFlow,
   };
 }
 
@@ -136,17 +140,25 @@ async function main(): Promise<void> {
       });
     }
 
-    // Phase 4: Initialize tool registry
+    // Phase 4: Initialize confirmation flow
+    const confirmationFlow = new ConfirmationFlow(logger);
+
+    // Phase 5: Initialize tool registry
     const registry = createToolRegistry(logger);
     const toolCount = registerAllTools(registry, logger);
+
+    // Register confirmation tools
+    for (const entry of confirmationTools) {
+      registry.register(entry.definition, entry.handler);
+    }
 
     logger.debug("app.bootstrap.server_initialized", {
       name: "mcp-coolify",
       version: "1.0.0-rc.1",
-      toolCount,
+      toolCount: registry.count(),
     });
 
-    // Phase 5: Initialize MCP server and register tools
+    // Phase 6: Initialize MCP server and register tools
     const server = new McpServer({
       name: "mcp-coolify",
       version: "1.0.0-rc.1",
@@ -158,20 +170,46 @@ async function main(): Promise<void> {
 
       // For MCP compatibility, pass the Zod schema directly
       // MCP SDK will handle the schema validation
-      // MCP SDK expects inputSchema to be a schema type - cast Zod safely
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- MCP SDK schema typing
-      const inputSchemaAsSchema = def.parameters.schema as unknown;
-      const toolDef = {
-        description: def.description,
-        inputSchema: inputSchemaAsSchema,
-      };
-
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Zod schema compatible with MCP inputSchema
       server.registerTool(
         def.name,
-        toolDef,
+        {
+          description: def.description,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment -- Zod schema compatible with MCP inputSchema
+          inputSchema: def.parameters.schema as any,
+        },
         async (params: unknown) => {
           const requestId = randomUUID();
-          const context = createToolContext(requestId, logger, config, httpClient);
+          const context = createToolContext(requestId, logger, config, httpClient, confirmationFlow);
+
+          // Check if tool requires confirmation
+          if (requiresConfirmation(def.name)) {
+            const operationId = randomUUID();
+            const confirmationToken = confirmationFlow.requestConfirmation({
+              operationId,
+              operationName: def.name,
+              parameters: params as Record<string, unknown>,
+              reason: getConfirmationReason(def.name),
+              requiredConfirmation: true,
+            });
+
+            // Return confirmation required response
+            const confirmationResponse = {
+              requiresConfirmation: true,
+              operationId,
+              confirmationToken,
+              operation: def.name,
+              reason: getConfirmationReason(def.name),
+              message: `La operación '${def.name}' requiere confirmación explícita. Use confirm_operation con el token proporcionado.`,
+            };
+
+            const text = JSON.stringify(confirmationResponse, null, 2);
+            return {
+              content: [{ type: "text" as const, text }],
+            };
+          }
+
+          // Execute tool normally if no confirmation needed
           const result = await entry.handler(params, context);
 
           // Format result as MCP-compliant response
@@ -183,7 +221,7 @@ async function main(): Promise<void> {
       );
     }
 
-    // Phase 6: Start server
+    // Phase 7: Start server
     const transport = new StdioServerTransport();
     await server.connect(transport);
 

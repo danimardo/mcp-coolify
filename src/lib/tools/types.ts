@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import type { ToolContext } from "../logging/types";
+import type { ConfirmationFlow } from "../confirmation/flow";
 
 export type { ToolContext };
 
@@ -24,7 +25,8 @@ export type ToolCategory =
   | "private-keys"
   | "github-apps"
   | "cloud-tokens"
-  | "hetzner";
+  | "hetzner"
+  | "confirmation";
 
 /**
  * Tool definition - metadata about a tool
@@ -71,6 +73,7 @@ export interface ExtendedToolContext extends ToolContext {
     patch<T>(url: string, data: unknown, options?: Record<string, unknown>): Promise<T>;
     delete<T>(url: string, options?: Record<string, unknown>): Promise<T>;
   };
+  confirmationFlow: ConfirmationFlow;
 }
 
 /**
