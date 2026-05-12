@@ -94,6 +94,7 @@ export class ToolRegistryImpl implements ToolRegistry {
       resources: 0,
       monitoring: 0,
       environments: 0,
+      gits: 0,
       "private-keys": 0,
       "github-apps": 0,
       "cloud-tokens": 0,
