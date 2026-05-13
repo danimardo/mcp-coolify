@@ -24,6 +24,7 @@ Con este MCP puedes hablarle a Claude en lenguaje natural y pedirle que gestione
   - [Cómo usarlo](#cómo-usarlo)
 - [Herramientas disponibles](#-herramientas-disponibles-107)
 - [Ejemplos por herramienta](#-qué-puedes-pedirle-a-claude--ejemplos-por-herramienta)
+- [Integrar en tu flujo de trabajo](#-integrar-el-mcp-en-tu-flujo-de-trabajo-de-desarrollo)
 - [Seguridad y confirmaciones](#-seguridad-y-confirmaciones)
 - [Modo READ_ONLY](#-modo-read_only)
 - [Logging y diagnóstico](#-logging-y-diagnóstico)
@@ -431,6 +432,122 @@ No necesitas recordar los nombres técnicos de las herramientas. Claude elige la
 | Herramienta | Cuándo aparece |
 |---|---|
 | `confirm_operation` | Se invoca automáticamente cuando Claude necesita que confirmes una operación irreversible (eliminar servidor, borrar base de datos, lanzar deployment en producción, etc.). Claude te mostrará el aviso y esperará tu OK antes de proceder. |
+
+---
+
+## Integrar el MCP en tu flujo de trabajo de desarrollo
+
+Este MCP es especialmente útil cuando tienes una aplicación en Coolify que se redespliega automáticamente con cada push a GitHub. Claude puede actuar como puente entre tu código local y el despliegue remoto — consultando logs, comprobando el estado del deploy, o detectando errores en producción mientras programas.
+
+Esta sección explica **cómo configurarlo** para que Claude lo haga de forma proactiva, sin que tengas que pedírselo cada vez.
+
+---
+
+### 1. Qué poner en el CLAUDE.md de tu proyecto
+
+Crea o edita el archivo `CLAUDE.md` en la raíz de tu proyecto (el que estás desarrollando, no el del MCP) y añade un bloque como este:
+
+```markdown
+## Despliegue remoto en Coolify
+
+Este proyecto está desplegado en Coolify. Siempre que el usuario mencione
+producción, el servidor remoto, errores en producción, el estado del deploy,
+o cualquier cosa relacionada con el entorno remoto, usa el MCP de Coolify
+para consultar la información real antes de responder.
+
+### Datos del despliegue
+- **Aplicación**: nombre-de-tu-app
+- **UUID**: xxxxxxxxxxxxxxxxxxxxxxxx
+- **Entorno**: production
+- **Proyecto Coolify**: nombre-del-proyecto
+- **Rama de producción**: main
+
+### Cuándo usar el MCP de Coolify de forma proactiva
+
+- El usuario menciona un error o bug en producción
+  → Consulta los logs con `get_application_logs` antes de responder
+- El usuario hace un push o merge a main
+  → Comprueba el estado del deployment con `list_deployments`
+- El usuario pregunta si algo "está funcionando" o "está caído"
+  → Consulta `get_application` para ver el estado real
+- El usuario menciona "el servidor" o "el despliegue"
+  → Usa `get_server_resources` o `get_deployment` para dar datos reales
+- Hay un error nuevo en el código que podría haberse manifestado en producción
+  → Revisa los logs recientes con `get_application_logs`
+
+### Lo que NO necesita confirmación del usuario
+Puedes consultar Coolify en silencio (sin preguntar) cuando sea para
+leer información: logs, estado, deployments, recursos. Solo pregunta
+antes de ejecutar acciones: reiniciar, detener, lanzar deploy.
+```
+
+Ajusta el UUID, el nombre de la aplicación y la rama de producción con los valores reales de tu despliegue.
+
+---
+
+### 2. Cómo hablarle a Claude en el prompt del día a día
+
+Una vez configurado el `CLAUDE.md`, Claude entiende el contexto. Aquí tienes frases típicas del flujo de trabajo real y lo que Claude hará con ellas:
+
+#### Durante el desarrollo
+
+| Lo que escribes | Lo que hace Claude |
+|---|---|
+| *"Acabo de hacer push, ¿ha arrancado bien?"* | Consulta `list_deployments` para ver si el deploy se completó sin errores |
+| *"¿El último deploy ha ido bien?"* | Busca el deployment más reciente y revisa su estado |
+| *"¿Hay algún error en producción ahora mismo?"* | Lee los logs con `get_application_logs` y te resume los errores |
+| *"¿Por qué falla en producción si en local funciona?"* | Cruza el código local con los logs remotos para detectar la diferencia |
+| *"¿Qué está haciendo la app ahora mismo?"* | Consulta estado de la aplicación y los logs más recientes |
+
+#### Cuando hay un incidente
+
+| Lo que escribes | Lo que hace Claude |
+|---|---|
+| *"La app está caída, ¿qué ha pasado?"* | Consulta estado, logs y último deployment para diagnosticar |
+| *"Los usuarios dicen que hay errores 500"* | Revisa los logs buscando errores HTTP 500 y su stack trace |
+| *"¿Cuándo empezaron los errores?"* | Navega por los logs para localizar el momento exacto |
+| *"¿El servidor está bien de recursos?"* | Consulta `get_server_resources` para ver CPU y memoria |
+| *"Necesito reiniciar la app urgente"* | Ejecuta `restart_application` (pedirá confirmación antes) |
+
+#### Tras un cambio importante
+
+| Lo que escribes | Lo que hace Claude |
+|---|---|
+| *"He cambiado la conexión a la base de datos, ¿funciona en prod?"* | Lee los logs tras el deploy buscando errores de conexión |
+| *"¿El deploy de la rama 'fix/auth' está activo ya?"* | Comprueba qué deployment está corriendo actualmente |
+| *"Compara cómo estaba ayer con cómo está ahora"* | Revisa el historial de deployments y los logs de cada uno |
+| *"¿Cuánto tarda en desplegarse esta app?"* | Consulta los deployments recientes y mide los tiempos |
+
+---
+
+### 3. Ejemplo de sesión de trabajo real
+
+Así se ve una conversación típica con el MCP integrado:
+
+```
+Tú:     Acabo de hacer merge de la PR #42 a main. ¿Ha arrancado bien?
+
+Claude: Voy a comprobarlo en Coolify...
+        El deployment se disparó hace 3 minutos. Estado: completado ✓
+        La aplicación está corriendo. Últimas líneas de log:
+          [INFO] Server listening on port 3000
+          [INFO] Database connection established
+        Todo parece correcto.
+
+Tú:     Perfecto. Oye, hay usuarios que dicen que el login falla.
+
+Claude: Revisando los logs en busca de errores de autenticación...
+        Encontré esto en los últimos 10 minutos:
+          [ERROR] JWT verification failed: invalid signature (x23 veces)
+        Parece que el secreto JWT en producción no coincide con el del
+        código desplegado. ¿Cambiaste JWT_SECRET recientemente?
+
+Tú:     Sí, lo cambié en .env pero no en Coolify.
+
+Claude: Ahí está el problema. Para solucionarlo necesitas actualizar
+        la variable de entorno en Coolify. ¿Quieres que lo haga yo?
+        (Necesitaré que confirmes antes de modificar nada en producción.)
+```
 
 ---
 
