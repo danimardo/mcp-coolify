@@ -23,6 +23,7 @@ Con este MCP puedes hablarle a Claude en lenguaje natural y pedirle que gestione
   - [Linux / macOS](#linux--macos-1)
   - [Cómo usarlo](#cómo-usarlo)
 - [Herramientas disponibles](#-herramientas-disponibles-107)
+- [Ejemplos por herramienta](#-qué-puedes-pedirle-a-claude--ejemplos-por-herramienta)
 - [Seguridad y confirmaciones](#-seguridad-y-confirmaciones)
 - [Modo READ_ONLY](#-modo-read_only)
 - [Logging y diagnóstico](#-logging-y-diagnóstico)
@@ -258,6 +259,178 @@ El servidor expone herramientas organizadas en 13 categorías:
 | **Hetzner** | 3 | `list_hetzner_locations`, `list_hetzner_images`, `list_server_types` |
 
 Ver [especificación completa](specs/001-mcp-coolify/spec.md) para parámetros y comportamiento de cada herramienta.
+
+---
+
+## Qué puedes pedirle a Claude — ejemplos por herramienta
+
+No necesitas recordar los nombres técnicos de las herramientas. Claude elige la correcta según lo que le pidas en lenguaje natural. Estos son ejemplos concretos para cada una de las 92 herramientas disponibles.
+
+### Información general y diagnóstico
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `get_status` | "¿Cuál es el estado general de Coolify?" |
+| `get_info` | "¿Qué versión de Coolify tengo instalada?" |
+| `get_config` | "Muéstrame la configuración actual de Coolify" |
+| `validate_token` | "¿Mi token de API de Coolify es válido?" |
+| `test_connection` | "Prueba la conexión con Coolify" |
+
+### Equipos
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `get_current_team` | "¿A qué equipo pertenezco en Coolify?" |
+| `list_all_teams` | "¿Cuántos equipos hay en Coolify? Muéstramelos todos" |
+| `get_team_by_id` | "Muéstrame los detalles del equipo con ID 3" |
+| `get_current_team_members` | "¿Quién forma parte de mi equipo?" |
+
+### Proyectos
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_projects` | "¿Qué proyectos tengo en Coolify?" |
+| `get_project` | "Muéstrame los detalles del proyecto 'backend'" |
+| `create_project` | "Crea un nuevo proyecto llamado 'frontend'" |
+| `update_project` | "Cambia la descripción del proyecto 'backend' a 'API de producción'" |
+| `delete_project` | "Elimina el proyecto 'pruebas-temporales'" |
+| `list_project_environments` | "¿Qué entornos tiene el proyecto 'backend'?" |
+
+### Entornos
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_environments` | "Lista todos los entornos disponibles" |
+| `get_environment` | "Muéstrame el entorno 'production' del proyecto 'backend'" |
+| `create_environment` | "Crea un entorno llamado 'staging' en el proyecto 'backend'" |
+| `delete_environment` | "Elimina el entorno 'staging' del proyecto 'backend'" |
+
+### Aplicaciones
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_applications` | "¿Qué aplicaciones tengo desplegadas?" |
+| `get_application` | "Muéstrame los detalles de la aplicación 'mi-api'" |
+| `get_application_logs` | "Muéstrame los últimos 200 logs de la aplicación 'mi-api'" |
+| `start_application` | "Arranca la aplicación 'mi-api'" |
+| `stop_application` | "Para la aplicación 'mi-api'" |
+| `restart_application` | "Reinicia la aplicación 'mi-api'" |
+
+### Deployments
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_deployments` | "¿Cuáles son los últimos deployments de la aplicación 'mi-api'?" |
+| `get_deployment` | "Muéstrame el detalle del deployment abc-123" |
+| `trigger_deployment` | "Lanza un nuevo deployment de la aplicación 'mi-api'" |
+| `cancel_deployment` | "Cancela el deployment en curso de 'mi-api'" |
+
+### Bases de datos
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_databases` | "¿Qué bases de datos tengo en Coolify?" |
+| `get_database` | "Muéstrame los detalles de la base de datos 'mi-postgres'" |
+| `create_database_postgres` | "Crea una base de datos PostgreSQL llamada 'analytics' en el proyecto 'backend'" |
+| `create_database_mysql` | "Crea una base de datos MySQL llamada 'tienda'" |
+| `create_database_mariadb` | "Crea una base de datos MariaDB para el proyecto 'blog'" |
+| `create_database_mongodb` | "Crea una base de datos MongoDB llamada 'eventos'" |
+| `create_database_redis` | "Crea un Redis llamado 'cache-api' en el proyecto 'backend'" |
+| `create_database_dragonfly` | "Crea una base de datos Dragonfly para caché" |
+| `create_database_keydb` | "Crea una base de datos KeyDB llamada 'sesiones'" |
+| `create_database_clickhouse` | "Crea una base de datos ClickHouse para analytics en tiempo real" |
+| `update_database` | "Cambia el nombre de la base de datos 'mi-postgres' a 'postgres-prod'" |
+| `delete_database` | "Elimina la base de datos 'pruebas-db'" |
+| `start_database` | "Arranca la base de datos 'mi-postgres'" |
+| `stop_database` | "Para la base de datos 'mi-postgres'" |
+| `restart_database` | "Reinicia la base de datos 'mi-postgres'" |
+| `list_database_backups` | "¿Qué backups tiene configurados la base de datos 'mi-postgres'?" |
+| `create_database_backup` | "Crea un backup de la base de datos 'mi-postgres'" |
+| `update_database_backup` | "Cambia el horario del backup de 'mi-postgres' a las 3 de la madrugada" |
+| `delete_database_backup` | "Elimina la configuración de backup de 'mi-postgres'" |
+| `list_backup_executions` | "¿Cuándo se ejecutó el último backup de 'mi-postgres'?" |
+| `delete_backup_execution` | "Elimina el registro de la ejecución de backup abc-123" |
+
+### Servicios
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_services` | "¿Qué servicios tengo en Coolify?" |
+| `get_service` | "Muéstrame los detalles del servicio 'minio'" |
+| `create_service` | "Crea un nuevo servicio Plausible Analytics en el proyecto 'analytics'" |
+| `update_service` | "Cambia la descripción del servicio 'minio' a 'Almacenamiento de objetos'" |
+| `delete_service` | "Elimina el servicio 'minio-pruebas'" |
+| `start_service` | "Arranca el servicio 'minio'" |
+| `stop_service` | "Para el servicio 'minio'" |
+| `restart_service` | "Reinicia el servicio 'minio'" |
+| `update_service_env` | "Cambia las variables de entorno del servicio 'minio': pon MINIO_ROOT_USER=admin" |
+
+### Servidores
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_servers` | "¿Qué servidores tengo en Coolify?" |
+| `get_server` | "Muéstrame los detalles del servidor 'produccion-1'" |
+| `create_server` | "Añade un nuevo servidor con IP 192.168.1.10 y usuario root" |
+| `update_server` | "Cambia el nombre del servidor 'produccion-1' a 'prod-eu-1'" |
+| `delete_server` | "Elimina el servidor 'staging-server'" |
+| `validate_server` | "¿El servidor 'produccion-1' es accesible desde Coolify?" |
+| `get_server_resources` | "¿Cuánta CPU y memoria está usando el servidor 'produccion-1'?" |
+| `get_server_domains` | "¿Qué dominios tiene configurados el servidor 'produccion-1'?" |
+
+### Recursos del servidor
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `get_resources` | "Muéstrame todos los recursos (apps, bases de datos, servicios) del servidor 'produccion-1'" |
+
+### Claves privadas SSH
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_private_keys` | "¿Qué claves SSH tengo guardadas en Coolify?" |
+| `get_private_key` | "Muéstrame los detalles de la clave SSH 'deploy-key'" |
+| `create_private_key` | "Añade una nueva clave SSH llamada 'servidor-hetzner'" |
+| `update_private_key` | "Renombra la clave SSH 'deploy-key' a 'github-deploy'" |
+| `delete_private_key` | "Elimina la clave SSH 'clave-antigua'" |
+
+### GitHub Apps
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_github_apps` | "¿Qué integraciones con GitHub tengo configuradas en Coolify?" |
+| `create_github_app` | "Crea una nueva integración con GitHub para mi organización 'mi-org'" |
+| `update_github_app` | "Actualiza la configuración de la GitHub App 'mi-org'" |
+| `delete_github_app` | "Elimina la integración con GitHub 'mi-org-antigua'" |
+| `list_repositories` | "¿A qué repositorios de GitHub tengo acceso desde Coolify?" |
+| `list_branches` | "¿Qué ramas tiene el repositorio 'mi-org/mi-api'?" |
+
+### Tokens de proveedor cloud
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_cloud_tokens` | "¿Qué tokens de proveedor cloud tengo guardados en Coolify?" |
+| `get_cloud_token` | "Muéstrame los detalles del token 'hetzner-prod'" |
+| `create_cloud_token` | "Guarda un nuevo token de Hetzner Cloud llamado 'hetzner-prod'" |
+| `update_cloud_token` | "Actualiza el nombre del token de Hetzner Cloud 'hetzner-prod' a 'hetzner-eu'" |
+| `delete_cloud_token` | "Elimina el token de cloud 'hetzner-antiguo'" |
+| `validate_cloud_token` | "¿El token de Hetzner Cloud 'hetzner-prod' sigue siendo válido?" |
+
+### Hetzner Cloud
+
+| Herramienta | Ejemplo de petición |
+|---|---|
+| `list_hetzner_locations` | "¿En qué regiones puedo crear servidores en Hetzner?" |
+| `list_server_types` | "¿Qué tipos de servidor ofrece Hetzner y cuánto cuestan?" |
+| `list_hetzner_images` | "¿Qué imágenes de sistema operativo hay disponibles en Hetzner?" |
+| `list_ssh_keys` | "¿Qué claves SSH tengo registradas en mi cuenta de Hetzner?" |
+| `create_hetzner_server` | "Crea un servidor CX21 en Fráncfort con Ubuntu 22.04 usando la clave 'hetzner-prod'" |
+
+### Confirmación de operaciones críticas
+
+| Herramienta | Cuándo aparece |
+|---|---|
+| `confirm_operation` | Se invoca automáticamente cuando Claude necesita que confirmes una operación irreversible (eliminar servidor, borrar base de datos, lanzar deployment en producción, etc.). Claude te mostrará el aviso y esperará tu OK antes de proceder. |
 
 ---
 
