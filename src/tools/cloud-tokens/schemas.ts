@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 export const ListCloudTokensSchema = z.object({
   limit: z.number().int().min(1).max(100).default(50).describe("Elementos por página"),
@@ -11,7 +12,7 @@ export const ListCloudTokensSchema = z.object({
 }).strict();
 
 export const GetCloudTokenSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del token"),
+  uuid: coolifyIdSchema.describe("UUID del token"),
 }).strict();
 
 export const CreateCloudTokenSchema = z.object({
@@ -22,18 +23,18 @@ export const CreateCloudTokenSchema = z.object({
 }).strict();
 
 export const UpdateCloudTokenSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del token"),
+  uuid: coolifyIdSchema.describe("UUID del token"),
   name: z.string().min(1).optional().describe("Nuevo nombre"),
   token: z.string().optional().describe("Nuevo token"),
   description: z.string().optional().describe("Nueva descripción"),
 }).strict();
 
 export const DeleteCloudTokenSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del token"),
+  uuid: coolifyIdSchema.describe("UUID del token"),
 }).strict();
 
 export const ValidateTokenSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del token"),
+  uuid: coolifyIdSchema.describe("UUID del token"),
 }).strict();
 
 export const CloudTokenSchema = z.object({

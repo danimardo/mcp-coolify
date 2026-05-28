@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ============================================================
 // PARÁMETROS
@@ -12,12 +13,12 @@ import { z } from "zod";
 export const ListDatabasesSchema = z.object({}).strict();
 
 export const GetDatabaseSchema = z.object({
-  uuid: z.string().uuid("UUID válido requerido"),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const CreateDatabasePostgresSchema = z.object({
-  project_uuid: z.string().uuid(),
-  server_uuid: z.string().uuid(),
+  project_uuid: coolifyIdSchema,
+  server_uuid: coolifyIdSchema,
   environment_name: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
@@ -32,45 +33,45 @@ export const CreateDatabaseKeydbSchema = CreateDatabasePostgresSchema;
 export const CreateDatabaseClickhouseSchema = CreateDatabasePostgresSchema;
 
 export const UpdateDatabaseSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
   name: z.string().min(1).optional(),
   description: z.string().optional(),
 }).strict();
 
 export const DeleteDatabaseSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const StartDatabaseSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const StopDatabaseSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const RestartDatabaseSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const ListDatabaseBackupsSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const CreateDatabaseBackupSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
   frequency: z.enum(["daily", "weekly", "monthly"]),
   retention_days: z.number().int().positive(),
 }).strict();
 
 export const UpdateDatabaseBackupSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
   frequency: z.enum(["daily", "weekly", "monthly"]).optional(),
   retention_days: z.number().int().positive().optional(),
 }).strict();
 
 export const DeleteDatabaseBackupSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 export const ListBackupExecutionsSchema = z.object({
@@ -78,7 +79,7 @@ export const ListBackupExecutionsSchema = z.object({
 }).strict();
 
 export const DeleteBackupExecutionSchema = z.object({
-  uuid: z.string().uuid(),
+  uuid: coolifyIdSchema,
 }).strict();
 
 // ============================================================

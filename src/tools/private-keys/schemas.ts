@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ============================================================
 // PARÁMETROS
@@ -15,7 +16,7 @@ export const ListPrivateKeysSchema = z.object({
 }).strict();
 
 export const GetPrivateKeySchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la clave privada"),
+  uuid: coolifyIdSchema.describe("UUID de la clave privada"),
 }).strict();
 
 export const CreatePrivateKeySchema = z.object({
@@ -25,14 +26,14 @@ export const CreatePrivateKeySchema = z.object({
 }).strict();
 
 export const UpdatePrivateKeySchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la clave privada"),
+  uuid: coolifyIdSchema.describe("UUID de la clave privada"),
   name: z.string().min(1).optional().describe("Nuevo nombre"),
   description: z.string().optional().describe("Nueva descripción"),
   private_key: z.string().optional().describe("Contenido de la clave privada actualizado"),
 }).strict();
 
 export const DeletePrivateKeySchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la clave privada"),
+  uuid: coolifyIdSchema.describe("UUID de la clave privada"),
 }).strict();
 
 // ============================================================

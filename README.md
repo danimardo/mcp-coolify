@@ -261,6 +261,8 @@ El servidor expone herramientas organizadas en 13 categorías:
 
 Ver [especificación completa](specs/001-mcp-coolify/spec.md) para parámetros y comportamiento de cada herramienta.
 
+> **Identificadores de recursos**: las herramientas aceptan los IDs nativos de Coolify, que **no** son UUID clásicos sino cadenas cortas alfanuméricas (p. ej. `dw8ccwkso888ggwgwgww0wc4`). También se aceptan UUID estándar y, para equipos (`get_team_by_id`), IDs numéricos cortos (p. ej. `1`). Pásalos tal cual los devuelve Coolify — los que ves en `list_applications`, `list_deployments` o en la URL del panel.
+
 ---
 
 ## Qué puedes pedirle a Claude — ejemplos por herramienta
@@ -785,6 +787,13 @@ Select-String "req-abc123" .logs\app.log
 # bash
 grep "req-abc123" .logs/app.log
 ```
+
+### Una herramienta rechaza el ID ("Invalid Coolify resource ID" o validación de parámetros)
+
+Las herramientas aceptan los IDs nativos de Coolify (cadenas cortas alfanuméricas como `dw8ccwkso888ggwgwgww0wc4`), UUID estándar y, para equipos, IDs numéricos cortos. Si una herramienta rechaza un ID:
+
+- Comprueba que copiaste el identificador completo y sin espacios, tal cual lo devuelve Coolify (`list_applications`, `list_deployments`, o la URL del panel).
+- El evento `mcp.tool.parameters_invalid` en los logs indica qué campo falló y por qué.
 
 ---
 

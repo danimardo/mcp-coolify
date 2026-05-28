@@ -4,28 +4,29 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ============================================================
 // PARÁMETROS
 // ============================================================
 
 export const ListEnvironmentsSchema = z.object({
-  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  project_uuid: coolifyIdSchema.describe("UUID del proyecto"),
 }).strict();
 
 export const GetEnvironmentSchema = z.object({
-  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  project_uuid: coolifyIdSchema.describe("UUID del proyecto"),
   environment_name_or_uuid: z.string().min(1).describe("Nombre o UUID del ambiente"),
 }).strict();
 
 export const CreateEnvironmentSchema = z.object({
-  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  project_uuid: coolifyIdSchema.describe("UUID del proyecto"),
   name: z.string().min(1).describe("Nombre del ambiente"),
   description: z.string().optional().describe("Descripción"),
 }).strict();
 
 export const DeleteEnvironmentSchema = z.object({
-  project_uuid: z.string().uuid().describe("UUID del proyecto"),
+  project_uuid: coolifyIdSchema.describe("UUID del proyecto"),
   environment_name_or_uuid: z.string().min(1).describe("Nombre o UUID del ambiente a eliminar"),
 }).strict();
 

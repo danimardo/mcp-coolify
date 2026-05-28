@@ -27,6 +27,19 @@ export const coolifyIdSchema = z
   .describe("Coolify resource identifier");
 
 /**
+ * Coolify team identifier validator.
+ * Teams are addressed by a short numeric id (e.g. "1") in the Coolify API,
+ * but some deployments expose a UUID or short alphanumeric id. Accepts all three.
+ */
+export const coolifyTeamIdSchema = z
+  .string()
+  .regex(
+    /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-z]{8,40}|\d+)$/,
+    "Invalid Coolify team ID"
+  )
+  .describe("Coolify team identifier");
+
+/**
  * URL validator
  */
 export const urlSchema = z

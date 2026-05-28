@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { coolifyTeamIdSchema } from "$lib/schemas/common";
 
 /**
  * Schemas de parámetros para cada tool
@@ -17,7 +18,7 @@ export const ListAllTeamsSchema = z.object({}).strict();
 
 /** Requiere UUID v4 del equipo */
 export const GetTeamByIdSchema = z.object({
-  uuid: z.string().uuid("El parámetro uuid debe ser un UUID v4 válido"),
+  uuid: coolifyTeamIdSchema,
 });
 
 /** No requiere parámetros */

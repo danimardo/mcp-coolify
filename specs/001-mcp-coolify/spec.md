@@ -339,6 +339,16 @@ const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404, 422];
 // On 4xx (except 429): Fail immediately, no retry
 ```
 
+### Resource Identifier Validation
+
+Tool input parameters that reference a Coolify resource (`uuid`, `application_uuid`, `project_uuid`, `server_uuid`, etc.) are validated with `coolifyIdSchema`, which accepts **both** standard UUID v4 and Coolify's native short alphanumeric IDs (e.g. `dw8ccwkso888ggwgwgww0wc4`, 8–40 chars `[0-9a-z]`).
+
+- `coolifyIdSchema` — used by applications, services, projects, databases, deployments, environments, private-keys, github-apps and cloud-tokens.
+- `coolifyTeamIdSchema` — used by teams; additionally accepts short numeric IDs (e.g. `1`), because the Coolify teams API addresses teams by numeric `id`.
+- Server-generated identifiers (`requestId`, `operationId`, `confirmationToken`) remain **strict UUID v4**, since they are produced by `crypto.randomUUID()`.
+
+> Rationale: Coolify v4 does not use RFC UUIDs for most resources. Requiring strict UUID format rejected valid IDs (e.g. in `get_deployment`) before the request ever reached the API.
+
 ### Response Validation
 
 All responses from Coolify API are validated with **strict Zod parsing**:

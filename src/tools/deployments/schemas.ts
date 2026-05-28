@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ═══════════════════════════════════════════════════════════════════
 // Schemas de entrada (parámetros)
@@ -16,7 +17,7 @@ import { z } from "zod";
  * GET /deployments?application_uuid=&status=&limit=&skip=
  */
 export const ListDeploymentsSchema = z.object({
-  application_uuid: z.string().uuid().optional()
+  application_uuid: coolifyIdSchema.optional()
     .describe("UUID de la aplicación para filtrar despliegues"),
   status: z.string().optional()
     .describe("Filtrar por estado (pending, running, success, failed)"),
@@ -31,7 +32,7 @@ export const ListDeploymentsSchema = z.object({
  * GET /deployments/{uuid}
  */
 export const GetDeploymentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del despliegue"),
+  uuid: coolifyIdSchema.describe("UUID del despliegue"),
 }).strict();
 
 /**
@@ -39,7 +40,7 @@ export const GetDeploymentSchema = z.object({
  * POST /applications/{application_uuid}/deploy
  */
 export const TriggerDeploymentSchema = z.object({
-  application_uuid: z.string().uuid().describe("UUID de la aplicación a desplegar"),
+  application_uuid: coolifyIdSchema.describe("UUID de la aplicación a desplegar"),
   branch: z.string().optional().describe("Branch de git a desplegar (opcional)"),
   commit: z.string().optional().describe("Commit SHA específico a desplegar (opcional)"),
 }).strict();
@@ -49,7 +50,7 @@ export const TriggerDeploymentSchema = z.object({
  * POST /deployments/{uuid}/cancel
  */
 export const CancelDeploymentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID del despliegue a cancelar"),
+  uuid: coolifyIdSchema.describe("UUID del despliegue a cancelar"),
 }).strict();
 
 // ═══════════════════════════════════════════════════════════════════

@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { coolifyIdSchema } from "$lib/schemas/common";
 
 // ============================================================
 // PARÁMETROS
@@ -15,7 +16,7 @@ export const ListGitHubAppsSchema = z.object({
 }).strict();
 
 export const GetGitHubAppSchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la aplicación GitHub"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación GitHub"),
 }).strict();
 
 export const CreateGitHubAppSchema = z.object({
@@ -29,24 +30,24 @@ export const CreateGitHubAppSchema = z.object({
 }).strict();
 
 export const UpdateGitHubAppSchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la aplicación GitHub"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación GitHub"),
   name: z.string().min(1).optional().describe("Nuevo nombre"),
   webhook_secret: z.string().optional().describe("Nuevo secreto del webhook"),
   private_key: z.string().optional().describe("Nueva clave privada"),
 }).strict();
 
 export const DeleteGitHubAppSchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la aplicación GitHub"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación GitHub"),
 }).strict();
 
 export const ListRepositoriesSchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la aplicación GitHub"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación GitHub"),
   limit: z.number().int().min(1).max(100).default(50).describe("Elementos por página"),
   skip: z.number().int().min(0).default(0).describe("Offset"),
 }).strict();
 
 export const ListBranchesSchema = z.object({
-  uuid: z.string().uuid().describe("UUID de la aplicación GitHub"),
+  uuid: coolifyIdSchema.describe("UUID de la aplicación GitHub"),
   repository: z.string().min(1).describe("Nombre del repositorio"),
   limit: z.number().int().min(1).max(100).default(50).describe("Elementos por página"),
   skip: z.number().int().min(0).default(0).describe("Offset"),
