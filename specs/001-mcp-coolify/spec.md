@@ -415,6 +415,16 @@ All responses from Coolify API are validated with **strict Zod parsing**:
 }
 ```
 
+### Coolify API Error Mapping
+
+Errors returned by the Coolify API MUST be mapped to a typed error code, not collapsed into `UNKNOWN_ERROR`. The HTTP client converts the underlying `AxiosError` via `statusCodeToError` (403 → `FORBIDDEN`, 404 → `NOT_FOUND`, 401 → `UNAUTHORIZED`, etc.) and **propagates Coolify's response body in `details`** so the agent sees the real cause instead of a generic "Request failed with status code N". Coolify's own message (`message`/`error` field of the body) is also surfaced and logged (`coolify.request.forbidden` / `.not_found` / `.failed` include a `coolifyMessage` field). Connection failures map to `NETWORK_ERROR` and timeouts to `REQUEST_TIMEOUT`.
+
+> Note: the API token is read once at bootstrap (HTTP client construction). Changing the token requires restarting the MCP process; it is not hot-reloaded.
+
+### Confirmed Operation Failures
+
+`confirm_operation` MUST reflect the outcome of the underlying operation. If the confirmed operation executes but fails (e.g. the Coolify call returns 403), the response is `success: false` with `reason: "operation_failed"` and the original failure under `result`. Top-level `success: true` is reserved for operations that actually succeeded.
+
 ---
 
 ## Request ID & Tracing

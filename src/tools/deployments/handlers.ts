@@ -4,7 +4,7 @@
  * Implementa la lógica de cada tool:
  * - list_deployments    → GET  /deployments
  * - get_deployment      → GET  /deployments/{uuid}
- * - trigger_deployment  → POST /applications/{application_uuid}/deploy
+ * - trigger_deployment  → GET  /deploy?uuid={application_uuid}
  * - cancel_deployment   → POST /deployments/{uuid}/cancel
  */
 
@@ -74,35 +74,30 @@ export async function getDeploymentHandler(
 
 /**
  * Dispara un nuevo despliegue para una aplicación.
- * POST /applications/{application_uuid}/deploy
+ * GET /deploy?uuid={application_uuid}&force={bool}
+ *
+ * Coolify v4 despliega la rama configurada en la aplicación; el endpoint /deploy
+ * no acepta rama ni commit arbitrarios (solo uuid/tag/force/pr).
  */
 export async function triggerDeploymentHandler(
   params: unknown,
   context: ExtendedToolContext
 ): Promise<unknown> {
-  const { application_uuid, branch, commit } = params as {
+  const { application_uuid, force } = params as {
     application_uuid: string;
-    branch?: string;
-    commit?: string;
+    force?: boolean;
   };
 
-  const body: Record<string, string> = {};
+  const queryParams: Record<string, unknown> = { uuid: application_uuid };
 
-  if (branch) {
-    body.branch = branch;
+  if (force) {
+    queryParams.force = true;
   }
 
-  if (commit) {
-    body.commit = commit;
-  }
-
-  return context.httpClient.post(
-    `/applications/${application_uuid}/deploy`,
-    Object.keys(body).length > 0 ? body : {},
-    {
-      requestId: context.requestId,
-    }
-  );
+  return context.httpClient.get(`/deploy`, {
+    params: queryParams,
+    requestId: context.requestId,
+  });
 }
 
 // ───────────────────────────────────────────────────────────────────

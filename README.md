@@ -328,6 +328,8 @@ No necesitas recordar los nombres técnicos de las herramientas. Claude elige la
 | `trigger_deployment` | "Lanza un nuevo deployment de la aplicación 'mi-api'" |
 | `cancel_deployment` | "Cancela el deployment en curso de 'mi-api'" |
 
+> `trigger_deployment` despliega la **rama configurada en la aplicación** dentro de Coolify (la API `/deploy` no admite una rama o commit arbitrarios). Acepta `application_uuid` y, opcionalmente, `force: true` para reconstruir sin usar la caché de Docker.
+
 ### Bases de datos
 
 | Herramienta | Ejemplo de petición |
@@ -777,6 +779,8 @@ Errores frecuentes:
 # Activa debug para ver los detalles de cada request
 LOG_LEVEL=debug npm run dev
 ```
+
+El error que devuelve el MCP incluye el código real (`FORBIDDEN`, `NOT_FOUND`, etc.), el mensaje de Coolify y su cuerpo de respuesta en `details` — ya no se colapsa todo en `UNKNOWN_ERROR`. Un `FORBIDDEN` (403) suele indicar que el token de API no tiene permisos de escritura; recuerda que el token se lee al arrancar, así que **reinicia el MCP tras cambiarlo**.
 
 Luego busca el `requestId` de la operación que falló y filtra por él:
 

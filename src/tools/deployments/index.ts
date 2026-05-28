@@ -109,14 +109,14 @@ export const triggerDeploymentDefinition: ToolDefinition = {
   name: "trigger_deployment",
   category: "deployments",
   description: "Disparar un nuevo despliegue manual para una aplicación (requiere confirmación)",
-  summary: "Inicia un despliegue, opcionalmente especificando branch o commit",
+  summary: "Inicia un despliegue de la rama configurada en la aplicación; opcionalmente fuerza rebuild sin caché",
   examples: [
-    'invoke("trigger_deployment", {application_uuid: "..."}) → {uuid: "...", action: "trigger", status: "queued"}',
-    'invoke("trigger_deployment", {application_uuid: "...", branch: "develop"}) → {...}',
+    'invoke("trigger_deployment", {application_uuid: "..."}) → {deployments: [{deployment_uuid: "...", ...}]}',
+    'invoke("trigger_deployment", {application_uuid: "...", force: true}) → {...}',
   ],
   parameters: {
     schema: TriggerDeploymentSchema,
-    description: "UUID de la aplicación, y opcionalmente branch o commit",
+    description: "UUID de la aplicación, y opcionalmente force (rebuild sin caché de Docker)",
   },
   response: {
     schema: DeploymentActionSchema,

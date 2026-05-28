@@ -37,12 +37,11 @@ export const GetDeploymentSchema = z.object({
 
 /**
  * Dispara un nuevo despliegue manual.
- * POST /applications/{application_uuid}/deploy
+ * GET /deploy?uuid={application_uuid}&force={bool}
  */
 export const TriggerDeploymentSchema = z.object({
   application_uuid: coolifyIdSchema.describe("UUID de la aplicación a desplegar"),
-  branch: z.string().optional().describe("Branch de git a desplegar (opcional)"),
-  commit: z.string().optional().describe("Commit SHA específico a desplegar (opcional)"),
+  force: z.boolean().optional().describe("Forzar rebuild sin usar caché de Docker"),
 }).strict();
 
 /**

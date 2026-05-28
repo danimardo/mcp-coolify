@@ -11,6 +11,8 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import { randomUUID } from "crypto";
 import { Logger } from "./logging/types";
+import { statusCodeToError } from "./errors/response-formatter";
+import { CoolifyError, NetworkError, TimeoutError } from "./errors/error-types";
 
 export interface HttpClientOptions {
   baseURL: string;
@@ -157,7 +159,7 @@ class HttpClientInstance {
 
         // Non-retryable or max retries exceeded
         this.logRequestError(requestId, method, url, lastError, duration, attempt);
-        throw lastError;
+        throw this.toCoolifyError(lastError);
       }
     }
 
@@ -165,7 +167,7 @@ class HttpClientInstance {
     if (lastError) {
       const duration = Date.now() - startTime;
       this.logRequestError(requestId, method, url, lastError, duration, this.maxRetries);
-      throw lastError;
+      throw this.toCoolifyError(lastError);
     }
 
     throw new Error("Unexpected: No error to throw");
@@ -248,6 +250,29 @@ class HttpClientInstance {
     });
   }
 
+  /**
+   * Convert an AxiosError into a typed CoolifyError, preserving the Coolify
+   * response body in `details` so the MCP client receives the real cause
+   * instead of a generic UNKNOWN_ERROR.
+   */
+  private toCoolifyError(error: AxiosError): CoolifyError {
+    if (error.response) {
+      const data: unknown = error.response.data;
+      const message = extractCoolifyMessage(data) ?? error.message;
+      const coolifyError = statusCodeToError(error.response.status, message, data);
+      if (coolifyError.details === undefined && data !== undefined && data !== "") {
+        coolifyError.details = data;
+      }
+      return coolifyError;
+    }
+
+    if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+      return new TimeoutError(error.message);
+    }
+
+    return new NetworkError(error.message, error);
+  }
+
   private logRequestError(
     requestId: string,
     method: string,
@@ -257,6 +282,7 @@ class HttpClientInstance {
     attempt: number
   ): void {
     const statusCode = error.response?.status;
+    const coolifyMessage = extractCoolifyMessage(error.response?.data);
 
     // Log specific error types with appropriate levels and event names
     if (statusCode === 401) {
@@ -280,6 +306,7 @@ class HttpClientInstance {
         durationMs: duration,
         attempt,
         reason: "Forbidden - Insufficient permissions",
+        coolifyMessage,
       });
     } else if (statusCode === 404) {
       this.logger.warn("coolify.request.not_found", {
@@ -290,6 +317,7 @@ class HttpClientInstance {
         statusText: error.response?.statusText,
         durationMs: duration,
         attempt,
+        coolifyMessage,
       });
     } else if (statusCode === 429) {
       this.logger.warn("coolify.rate_limit.exceeded", {
@@ -311,6 +339,7 @@ class HttpClientInstance {
         durationMs: duration,
         attempt,
         message: error.message,
+        coolifyMessage,
       });
     }
   }
@@ -322,4 +351,21 @@ class HttpClientInstance {
 function isRetryableStatus(statusCode: number | undefined): boolean {
   if (!statusCode) return false;
   return RETRYABLE_STATUS_CODES.includes(statusCode);
+}
+
+/**
+ * Extract a human-readable message from a Coolify API error body.
+ * Coolify typically returns { message: "..." } or { error: "..." }.
+ */
+function extractCoolifyMessage(data: unknown): string | undefined {
+  if (data && typeof data === "object") {
+    const body = data as Record<string, unknown>;
+    if (typeof body.message === "string" && body.message.length > 0) {
+      return body.message;
+    }
+    if (typeof body.error === "string" && body.error.length > 0) {
+      return body.error;
+    }
+  }
+  return undefined;
 }

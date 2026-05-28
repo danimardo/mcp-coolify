@@ -65,6 +65,34 @@ describe("Confirmation Tool", () => {
     expect(result.operationId).toBe(operationId);
   });
 
+  it("debería propagar el fallo cuando la operación confirmada falla", async () => {
+    const operationId = randomUUID();
+    const token = confirmationFlow.requestConfirmation({
+      operationId,
+      operationName: "start_application",
+      parameters: { uuid: "test-uuid" },
+      reason: "Operación crítica",
+      requiredConfirmation: true,
+    });
+
+    // El handler interno (envuelto por createBaseTool) devuelve success:false al fallar
+    const failingHandler = (_p: unknown, _c: unknown) =>
+      Promise.resolve({
+        success: false,
+        error: { code: "FORBIDDEN", message: "Request failed with status code 403" },
+      });
+    confirmationFlow.storeOperation(operationId, token, failingHandler, { uuid: "test-uuid" }, context);
+
+    const result = (await confirmOperationHandler(
+      { operationId, confirmationToken: token },
+      context as ExtendedToolContext
+    )) as Record<string, unknown>;
+
+    expect(result.success).toBe(false);
+    expect(result.reason).toBe("operation_failed");
+    expect(result.result).toMatchObject({ success: false });
+  });
+
   it("debería rechazar token después de expiración", async () => {
     const operationId = randomUUID();
 
