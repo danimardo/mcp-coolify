@@ -88,14 +88,15 @@ export async function triggerDeploymentHandler(
     force?: boolean;
   };
 
-  const queryParams: Record<string, unknown> = { uuid: application_uuid };
-
+  const queryParams = new URLSearchParams();
+  queryParams.append('uuid', application_uuid);
   if (force) {
-    queryParams.force = true;
+    queryParams.append('force', 'true');
   }
 
-  return context.httpClient.get(`/deploy`, {
-    params: queryParams,
+  const queryString = queryParams.toString();
+
+  return context.httpClient.get(`/deploy?${queryString}`, {
     requestId: context.requestId,
   });
 }
