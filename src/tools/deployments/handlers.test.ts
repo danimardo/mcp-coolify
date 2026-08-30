@@ -45,13 +45,10 @@ describe("triggerDeploymentHandler", () => {
 
     expect(calls).toHaveLength(1);
     expect(calls[0].method).toBe("GET");
-    expect(calls[0].url).toBe("/deploy");
-    expect(calls[0].options).toMatchObject({
-      params: { uuid: "aks4wsg8gswc0c4wck84w4sc" },
-    });
+    expect(calls[0].url).toBe("/deploy?uuid=aks4wsg8gswc0c4wck84w4sc");
   });
 
-  it("incluye force=true en los params cuando se solicita", async () => {
+  it("incluye force=true en la query string cuando se solicita", async () => {
     const { context, calls } = makeContext();
 
     await triggerDeploymentHandler(
@@ -59,9 +56,9 @@ describe("triggerDeploymentHandler", () => {
       context
     );
 
-    expect(calls[0].options).toMatchObject({
-      params: { uuid: "aks4wsg8gswc0c4wck84w4sc", force: true },
-    });
+    expect(calls[0].url).toBe(
+      "/deploy?uuid=aks4wsg8gswc0c4wck84w4sc&force=true"
+    );
   });
 });
 
