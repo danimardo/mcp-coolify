@@ -9,7 +9,7 @@
 **Decisión**: `Authorization: Bearer <TOKEN>`
 
 **Evidencia**: 
-- Curl funcional: `Authorization: Bearer <COOLIFY_TOKEN_REDACTED>`
+- Curl funcional: `Authorization: Bearer <COOLIFY_TOKEN>`
 - Format en Coolify v4 es Bearer Token estándar
 
 **Implementación**:

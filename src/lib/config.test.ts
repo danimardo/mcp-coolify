@@ -144,4 +144,44 @@ describe("Configuration", () => {
     resetConfig();
     expect(() => getConfig()).toThrow();
   });
+
+  it("should default SSH to disabled", () => {
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
+
+    resetConfig();
+    const config = getConfig();
+
+    expect(config.sshEnabled).toBe(false);
+    expect(config.sshPort).toBe(22);
+    expect(config.sshStrictHostKeyChecking).toBe("accept-new");
+    expect(config.sshCommandTimeoutMs).toBe(20000);
+  });
+
+  it("should reject SSH_ENABLED=true without host/user/key", () => {
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
+    process.env.SSH_ENABLED = "true";
+
+    resetConfig();
+    expect(() => getConfig()).toThrow();
+  });
+
+  it("should accept a complete SSH configuration", () => {
+    process.env.COOLIFY_BASE_URL = "https://coolify.example.com/api/v1";
+    process.env.COOLIFY_TOKEN = "tr_test_token_123";
+    process.env.SSH_ENABLED = "true";
+    process.env.SSH_HOST = "coolify.example.com";
+    process.env.SSH_USER = "deploy";
+    process.env.SSH_PRIVATE_KEY_PATH = "/home/deploy/.ssh/id_ed25519";
+    process.env.SSH_PORT = "2222";
+
+    resetConfig();
+    const config = getConfig();
+
+    expect(config.sshEnabled).toBe(true);
+    expect(config.sshHost).toBe("coolify.example.com");
+    expect(config.sshUser).toBe("deploy");
+    expect(config.sshPort).toBe(2222);
+  });
 });

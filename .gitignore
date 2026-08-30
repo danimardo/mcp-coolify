@@ -26,6 +26,9 @@ dist/
 *~
 .DS_Store
 
+# Claude Code local settings (per-user; may contain machine-specific paths/tokens)
+.claude/settings.local.json
+
 # Testing
 coverage/
 .nyc_output/

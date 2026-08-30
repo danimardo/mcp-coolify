@@ -595,6 +595,7 @@ For tools with `requiresConfirmation: true`:
 | Services | 13 | - | ✅ 7/13 (list, get, backups) | 6/13 (write ops) |
 | Servers | 8 | ✅ 4/8 (list, get, validate, resources) | - | 4/8 (write ops) |
 | Resources | 1 | ✅ 1/1 | - | - |
+| Containers | 1 | ✅ 1/1 (`get_container_logs`, SSH; gated by `SSH_ENABLED`) | - | - |
 | Private Keys | 5 | - | ✅ 2/5 (list, get) | 3/5 (write ops) |
 | GitHub Apps | 7 | - | ✅ 3/7 (list, get, repos) | 4/7 (write ops) |
 | Cloud Tokens | 6 | - | ✅ 2/6 (list, get) | 4/6 (write ops) |

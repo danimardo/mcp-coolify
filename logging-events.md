@@ -498,6 +498,67 @@ Eventos específicos del modo solo-lectura.
 
 ---
 
+## 6b. SSH / Container Logs Events
+
+Eventos emitidos por las herramientas que acceden a los contenedores Docker del
+host vía SSH (`get_container_logs`). Requieren `SSH_ENABLED=true`.
+
+### `ssh.disabled`
+- **Nivel**: `warn`
+- **Cuándo**: Se invoca una herramienta SSH pero `SSH_ENABLED` no está activo o la config está incompleta
+- **Contexto recomendado**: `requestId`
+- **Ejemplo**:
+```json
+{ "requestId": "req-abc123def456" }
+```
+
+### `ssh.command.started`
+- **Nivel**: `info`
+- **Cuándo**: Justo antes de abrir SSH y ejecutar el comando remoto (`docker ps`/`inspect`/`logs`)
+- **Contexto recomendado**: `requestId`, `host`, `resourceType`, `resourceUuid`, `container`, `tail`
+- **Ejemplo**:
+```json
+{
+  "requestId": "req-abc123def456",
+  "host": "coolify.example.com",
+  "resourceType": "service",
+  "resourceUuid": "f8s0c0k4wgok8sccg0w4k8sg",
+  "tail": 200
+}
+```
+
+### `ssh.command.completed`
+- **Nivel**: `info`
+- **Cuándo**: El comando remoto terminó con éxito y se parseó la salida
+- **Contexto recomendado**: `requestId`, `host`, `resourceUuid`, `containers`, `durationMs`
+- **Ejemplo**:
+```json
+{
+  "requestId": "req-abc123def456",
+  "host": "coolify.example.com",
+  "resourceUuid": "f8s0c0k4wgok8sccg0w4k8sg",
+  "containers": 4,
+  "durationMs": 812
+}
+```
+
+### `ssh.command.failed`
+- **Nivel**: `warn` si no hay contenedores (`reason: "no_containers"`), `error` en fallo del comando remoto
+- **Cuándo**: El comando remoto salió con código distinto de cero, o no se resolvió ningún contenedor, o expiró el timeout
+- **Contexto recomendado**: `requestId`, `host`, `exitCode`, `reason`, `resourceUuid`, `durationMs`
+- **Ejemplo**:
+```json
+{
+  "requestId": "req-abc123def456",
+  "host": "coolify.example.com",
+  "exitCode": 127,
+  "resourceUuid": "f8s0c0k4wgok8sccg0w4k8sg",
+  "durationMs": 540
+}
+```
+
+---
+
 ## 7. Shutdown Events
 
 Eventos durante apagado del servidor.
@@ -712,5 +773,5 @@ function logWithValidation(eventName: StableEventName, context?: Record<string, 
 
 ---
 
-**Última actualización**: 2026-05-11  
+**Última actualización**: 2026-08-30  
 **Versión**: 1.0.0

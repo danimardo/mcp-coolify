@@ -84,6 +84,71 @@ const configSchema = z.object({
     .max(5)
     .default(3)
     .describe("Maximum retries for transient errors"),
+
+  // SSH Configuration (optional - required only when sshEnabled is true)
+  // Powers container-log tools that shell into the Docker host via `ssh`.
+  sshEnabled: z
+    .boolean()
+    .default(false)
+    .describe("Enable SSH-backed tools (get_container_logs)"),
+
+  sshHost: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Hostname or IP of the Docker host to SSH into"),
+
+  sshPort: z
+    .number()
+    .int()
+    .min(1)
+    .max(65535)
+    .default(22)
+    .describe("SSH port of the Docker host"),
+
+  sshUser: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("SSH login user on the Docker host"),
+
+  sshPrivateKeyPath: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Absolute path to the private key used for SSH auth"),
+
+  sshStrictHostKeyChecking: z
+    .enum(["yes", "accept-new", "no"])
+    .default("accept-new")
+    .describe("Value passed to ssh -o StrictHostKeyChecking"),
+
+  sshKnownHostsPath: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Custom known_hosts file (ssh -o UserKnownHostsFile)"),
+
+  sshCommandTimeoutMs: z
+    .number()
+    .int()
+    .min(1000)
+    .max(120000)
+    .default(20000)
+    .describe("Timeout in ms for a single remote SSH command"),
+}).superRefine((cfg, ctx) => {
+  if (!cfg.sshEnabled) return;
+  const missing: string[] = [];
+  if (!cfg.sshHost) missing.push("SSH_HOST");
+  if (!cfg.sshUser) missing.push("SSH_USER");
+  if (!cfg.sshPrivateKeyPath) missing.push("SSH_PRIVATE_KEY_PATH");
+  if (missing.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `SSH_ENABLED=true requires: ${missing.join(", ")}`,
+      path: ["sshEnabled"],
+    });
+  }
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -108,6 +173,16 @@ export function loadConfig(): AppConfig {
       : undefined,
     maxRetries: process.env.COOLIFY_MAX_RETRIES
       ? parseInt(process.env.COOLIFY_MAX_RETRIES, 10)
+      : undefined,
+    sshEnabled: process.env.SSH_ENABLED === "true",
+    sshHost: process.env.SSH_HOST,
+    sshPort: process.env.SSH_PORT ? parseInt(process.env.SSH_PORT, 10) : undefined,
+    sshUser: process.env.SSH_USER,
+    sshPrivateKeyPath: process.env.SSH_PRIVATE_KEY_PATH,
+    sshStrictHostKeyChecking: process.env.SSH_STRICT_HOST_KEY_CHECKING,
+    sshKnownHostsPath: process.env.SSH_KNOWN_HOSTS_PATH,
+    sshCommandTimeoutMs: process.env.SSH_COMMAND_TIMEOUT_MS
+      ? parseInt(process.env.SSH_COMMAND_TIMEOUT_MS, 10)
       : undefined,
   };
 

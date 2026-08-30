@@ -22,6 +22,7 @@ export type ToolCategory =
   | "services"
   | "servers"
   | "resources"
+  | "containers"
   | "environments"
   | "private-keys"
   | "github-apps"
@@ -67,6 +68,16 @@ export interface ExtendedToolContext extends ToolContext {
     coolifyBaseUrl: string;
     readOnly: boolean;
     requestTimeout: number;
+    ssh?: {
+      enabled: boolean;
+      host?: string;
+      port: number;
+      user?: string;
+      privateKeyPath?: string;
+      strictHostKeyChecking: "yes" | "accept-new" | "no";
+      knownHostsPath?: string;
+      commandTimeoutMs: number;
+    };
   };
   httpClient: {
     get<T>(url: string, options?: Record<string, unknown>): Promise<T>;

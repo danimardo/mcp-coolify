@@ -162,6 +162,39 @@ export class ConfirmationRequiredError extends CoolifyError {
 }
 
 /**
+ * SSH disabled error
+ * Thrown when an SSH-backed tool is invoked but SSH_ENABLED is not set.
+ */
+export class SshDisabledError extends CoolifyError {
+  statusCode = 403;
+  errorCode = "SSH_DISABLED";
+  hint =
+    "Set SSH_ENABLED=true and provide SSH_HOST, SSH_USER and SSH_PRIVATE_KEY_PATH to use container-log tools.";
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+/**
+ * SSH command error
+ * Thrown when the remote SSH command cannot run or exits abnormally.
+ */
+export class SshCommandError extends CoolifyError {
+  statusCode = 502;
+  errorCode = "SSH_COMMAND_FAILED";
+  hint =
+    "Verify SSH connectivity to the Docker host and that the login user can run 'docker'.";
+
+  constructor(
+    message: string,
+    public details?: unknown
+  ) {
+    super(message);
+  }
+}
+
+/**
  * Server error (500)
  * Generic server error from Coolify API
  */

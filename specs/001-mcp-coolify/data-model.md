@@ -114,6 +114,7 @@ enum ToolCategory {
   SERVICES = "services",                  // 13 tools: CRUD + env vars + start/stop/restart
   SERVERS = "servers",                    // 8 tools: CRUD + validate + resources
   RESOURCES = "resources",                // 1 tool: unified list
+  CONTAINERS = "containers",              // 1 tool: get_container_logs (SSH; gated by SSH_ENABLED)
   PRIVATE_KEYS = "private_keys",          // 5 tools: CRUD
   GITHUB_APPS = "github_apps",            // 7 tools: CRUD + repos + branches
   CLOUD_TOKENS = "cloud_tokens",          // 6 tools: CRUD + validate

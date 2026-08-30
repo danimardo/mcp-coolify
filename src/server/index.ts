@@ -40,6 +40,16 @@ function createToolContext(
       coolifyBaseUrl: config.coolifyBaseUrl,
       readOnly: config.readOnly,
       requestTimeout: config.requestTimeout,
+      ssh: {
+        enabled: config.sshEnabled,
+        host: config.sshHost,
+        port: config.sshPort,
+        user: config.sshUser,
+        privateKeyPath: config.sshPrivateKeyPath,
+        strictHostKeyChecking: config.sshStrictHostKeyChecking,
+        knownHostsPath: config.sshKnownHostsPath,
+        commandTimeoutMs: config.sshCommandTimeoutMs,
+      },
     },
     httpClient: {
       get: <T>(url: string, options?: Record<string, unknown>) =>

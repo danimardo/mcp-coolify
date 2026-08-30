@@ -1921,7 +1921,7 @@ Respuesta: 5 bases de datos encontradas
   {
     "uuid": "server-uuid-1",
     "name": "prod-server-1",
-    "ip": "192.168.1.10",
+    "ip": "203.0.113.10",
     "status": "connected",
     "created_at": "2024-01-15T10:30:00Z"
   }
@@ -1945,7 +1945,7 @@ Respuesta: 5 bases de datos encontradas
 {
   "uuid": "server-uuid",
   "name": "prod-server-1",
-  "ip": "192.168.1.10",
+  "ip": "203.0.113.10",
   "status": "connected",
   "os": "Ubuntu 22.04",
   "docker_version": "24.0.0"

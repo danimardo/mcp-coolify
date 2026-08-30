@@ -15,6 +15,7 @@ import { databasesTools } from "./databases/index";
 import { servicesTools } from "./services/index";
 import { serversTools } from "./servers/index";
 import { resourcesTools } from "./resources/index";
+import { containersTools } from "./containers/index";
 import { privateKeysTools } from "./private-keys/index";
 import { githubAppsTools } from "./github-apps/index";
 import { cloudTokensTools } from "./cloud-tokens/index";
@@ -35,6 +36,7 @@ const allToolEntries: { definition: ToolDefinition; handler: ToolHandler }[] = [
   ...servicesTools,
   ...serversTools,
   ...resourcesTools,
+  ...containersTools,
   ...privateKeysTools,
   ...githubAppsTools,
   ...cloudTokensTools,

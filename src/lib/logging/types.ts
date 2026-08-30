@@ -50,6 +50,12 @@ export type EventName =
   | "auth.unauthorized"
   | "auth.forbidden"
 
+  // SSH / container-logs events
+  | "ssh.command.started"
+  | "ssh.command.completed"
+  | "ssh.command.failed"
+  | "ssh.disabled"
+
   // Response validation
   | "response.validation_failed"
   | "response.validation_passed"

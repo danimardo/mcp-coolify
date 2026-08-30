@@ -74,6 +74,18 @@ LOG_TO_FILES=true
 LOG_TIMEZONE=Europe/Madrid
 VALIDATE_TOKEN_ON_STARTUP=true
 NODE_ENV=development
+
+# Optional: SSH-backed container logs (get_container_logs)
+# The Coolify REST API has no log endpoint for services/databases; this tool
+# runs `docker logs` on the Docker host over SSH. Read-only; gated by SSH_ENABLED.
+SSH_ENABLED=false                             # true requires the three below
+SSH_HOST=coolify.example.com
+SSH_PORT=22
+SSH_USER=deploy
+SSH_PRIVATE_KEY_PATH=/home/deploy/.ssh/id_ed25519
+SSH_STRICT_HOST_KEY_CHECKING=accept-new       # yes | accept-new | no
+# SSH_KNOWN_HOSTS_PATH=
+SSH_COMMAND_TIMEOUT_MS=20000                  # range 1000-120000
 ```
 
 **Important**: `.env` is in `.gitignore` (never commit)

@@ -212,6 +212,7 @@ As a DevOps engineer, I want destructive operations to require explicit confirma
 | 7 | Services | 13 | list, get, create, update, delete, start, stop, restart, list_env_vars, create_env_var, update_env_var, bulk_update_env_vars, delete_env_var |
 | 8 | Servers | 8 | list, get, create, update, delete, validate, get_resources, get_domains |
 | 9 | Resources | 1 | list_resources (unified view of all resources) |
+| 9b | Containers | 1 | get_container_logs (runtime `docker logs` via SSH; gated by `SSH_ENABLED`, not covered by the Coolify REST API) |
 | 10 | Private Keys | 5 | list, get, create, update, delete |
 | 11 | GitHub Apps | 7 | list, get, create, update, delete, list_repositories, list_repository_branches |
 | 12 | Cloud Tokens | 6 | list, get, create, update, delete, validate |
@@ -312,8 +313,28 @@ interface Config {
   LOG_TIMEZONE: string;              // (default: "Europe/Madrid")
   VALIDATE_TOKEN_ON_STARTUP: boolean;// (default: true)
   NODE_ENV: "development" | "production" | "test";
+
+  // SSH / container-logs (all optional; required as a group when SSH_ENABLED=true)
+  SSH_ENABLED: boolean;              // (default: false) enables get_container_logs
+  SSH_HOST: string;                 // Docker host to ssh into
+  SSH_PORT: number;                 // (default: 22)
+  SSH_USER: string;                 // ssh login user
+  SSH_PRIVATE_KEY_PATH: string;     // absolute path to the private key
+  SSH_STRICT_HOST_KEY_CHECKING: "yes" | "accept-new" | "no"; // (default: "accept-new")
+  SSH_KNOWN_HOSTS_PATH?: string;    // optional custom known_hosts
+  SSH_COMMAND_TIMEOUT_MS: number;   // (default: 20000; range 1000-120000)
 }
 ```
+
+**SSH-backed container logs (`get_container_logs`)**:
+
+- The Coolify REST API v4 only exposes runtime logs for **applications** (`GET /applications/{uuid}/logs`) and build logs via `GET /deployments/{uuid}`. Services and standalone databases have **no** log endpoint.
+- `get_container_logs` fills that gap by running `docker ps` / `docker inspect` / `docker logs` on the Docker host over SSH, using the system `ssh` binary (`execFile`, no local shell).
+- Connection details come **only** from the `SSH_*` config, never from the Coolify API (whose server IP may be an internal address such as `host.docker.internal`). Single-host model.
+- Container resolution for a Coolify resource UUID uses two independent anchors: the `com.docker.compose.project` label (equals the UUID) and a container-name substring match; `*-volume-backup` helper containers are excluded.
+- Read-only by nature: **not** blocked by `READ_ONLY`; gated by `SSH_ENABLED`. `requiresConfirmation: false`.
+- Every value interpolated into the remote `/bin/sh` script is single-quoted; `resource_uuid`, `container` and `since` are validated with strict schemas before use.
+- Emits `ssh.disabled`, `ssh.command.started`, `ssh.command.completed`, `ssh.command.failed` (see `logging-events.md` §6b).
 
 ---
 
@@ -721,4 +742,4 @@ These decisions are LOCKED and cannot be alternatives:
 **Status**: Ready for Implementation Planning  
 **Next Phase**: `/speckit-plan` → `/speckit-implement`  
 **Maintained By**: Development Team  
-**Approval**: User (maintainer@example.com)
+**Approval**: Project maintainer
